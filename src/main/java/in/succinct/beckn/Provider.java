@@ -126,15 +126,18 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     
     public Directories getDirectories(){
         Directories directories = getObjectCreator().create(Directories.class);
-        for (TagGroup tag : getTags()) {
-            if (ObjectUtil.equals(tag.getId(),"directories")){
-                for (TagGroup tagGroup : tag.getList()) {
-                    Directory directory  = directories.getObjectCreator().create(Directory.class);
-                    directory.setId(tagGroup.getId());
-                    directory.setDescriptor(new Descriptor(){{
-                        setName(tagGroup.getValue());
-                    }});
-                    directories.add(directory);
+        TagGroups groups = getTags();
+        if (groups != null) {
+            for (TagGroup tag : groups) {
+                if (ObjectUtil.equals(tag.getId(), "directories")) {
+                    for (TagGroup tagGroup : tag.getList()) {
+                        Directory directory = directories.getObjectCreator().create(Directory.class);
+                        directory.setId(tagGroup.getId());
+                        directory.setDescriptor(new Descriptor() {{
+                            setName(tagGroup.getValue());
+                        }});
+                        directories.add(directory);
+                    }
                 }
             }
         }

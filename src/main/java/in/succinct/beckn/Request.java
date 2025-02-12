@@ -6,24 +6,13 @@ import com.venky.core.security.Crypt;
 import com.venky.core.util.ObjectHolder;
 import com.venky.core.util.ObjectUtil;
 import com.venky.extension.Registry;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.params.X25519PublicKeyParameters;
-import org.bouncycastle.internal.asn1.edec.EdECObjectIdentifiers;
-import org.bouncycastle.jcajce.provider.asymmetric.edec.BCEdDSAPublicKey;
-import org.bouncycastle.jcajce.provider.asymmetric.edec.BCXDHPublicKey;
-import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
-import org.bouncycastle.jcajce.spec.XDHParameterSpec;
 import org.json.simple.JSONObject;
 
-import java.lang.reflect.Field;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -194,10 +183,10 @@ public class Request extends BecknObject {
     }
 
 
-    public static String SIGNATURE_ALGO = EdDSAParameterSpec.Ed25519;
+    public static String SIGNATURE_ALGO = "Ed25519";
     public static int SIGNATURE_ALGO_KEY_LENGTH = 256;
 
-    public static String ENCRYPTION_ALGO = XDHParameterSpec.X25519;
+    public static String ENCRYPTION_ALGO = "X25519";
     public static int ENCRYPTION_ALGO_KEY_LENGTH = 256;
 
     public static String generateSignature(String req, String privateKey) {
@@ -224,79 +213,20 @@ public class Request extends BecknObject {
         }
         return null;
     }
-
+    
     public static PublicKey getSigningPublicKey(String keyFromRegistry){
-        PublicKey publicKey = null;
-        try {
-            publicKey = Crypt.getInstance().getPublicKey(Request.SIGNATURE_ALGO, keyFromRegistry);
-        }catch (Exception ex){
-            try {
-                byte[] bcBytes = Base64.getDecoder().decode(keyFromRegistry);
-                byte[] jceBytes = new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), bcBytes).getEncoded();
-                String pemKey = Base64.getEncoder().encodeToString(jceBytes);
-                publicKey = Crypt.getInstance().getPublicKey(Request.SIGNATURE_ALGO,pemKey);
-            }catch (Exception jceEx){
-                //return null;
-            }
-        }
-        Logger.getLogger(Request.class.getName()).info(String.format("%s resolved to %s", keyFromRegistry,publicKey == null ? null : publicKey.getClass().getName() ));
-        return publicKey;
+        return Crypt.getInstance().getPublicKey(Request.SIGNATURE_ALGO, keyFromRegistry);
     }
     public static PublicKey getEncryptionPublicKey(String keyFromRegistry){
-        PublicKey publicKey = null;
-        try {
-            publicKey = Crypt.getInstance().getPublicKey(Request.ENCRYPTION_ALGO, keyFromRegistry);
-        }catch (Exception ex){
-            try {
-                byte[] bcBytes = Base64.getDecoder().decode(keyFromRegistry);
-                byte[] jceBytes = new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519), bcBytes).getEncoded();
-                String pemKey = Base64.getEncoder().encodeToString(jceBytes);
-                publicKey = Crypt.getInstance().getPublicKey(Request.ENCRYPTION_ALGO,pemKey);
-            }catch (Exception jceEx){
-                //publicKey =  null;
-            }
-        }
-        Logger.getLogger(Request.class.getName()).info(String.format("%s resolved to %s", keyFromRegistry,publicKey == null ? null : publicKey.getClass().getName() ));
-        return publicKey;
+        return Crypt.getInstance().getPublicKey(Request.ENCRYPTION_ALGO, keyFromRegistry);
     }
 
     public static String getRawSigningKey(PublicKey publicKey){
-        try {
-            BCEdDSAPublicKey k = (BCEdDSAPublicKey) publicKey;
-            Field f = getField( k.getClass(),"eddsaPublicKey");
-            Ed25519PublicKeyParameters publicKeyParameters = (Ed25519PublicKeyParameters) f.get(k);
-            return Base64.getEncoder().encodeToString(publicKeyParameters.getEncoded());
-        }catch (Exception ex){
-            throw new RuntimeException("Unknown Key format");
-        }
+        return Crypt.getInstance().getBase64Encoded(publicKey,false);
     }
     public static String getRawEncryptionKey(PublicKey publicKey){
-        try {
-            BCXDHPublicKey k = (BCXDHPublicKey) publicKey;
-            Field f = getField(k.getClass(),"xdhPublicKey");
-            X25519PublicKeyParameters publicKeyParameters = (X25519PublicKeyParameters) f.get(k);
-            return Base64.getEncoder().encodeToString(publicKeyParameters.getEncoded());
-        }catch (Exception ex){
-            throw new RuntimeException("Unknown Key format");
-        }
+        return Crypt.getInstance().getBase64Encoded(publicKey,false);
     }
-
-    static Field getField(Class clazz, String fieldName){
-        Field field = null ;
-        while (field == null && clazz != Object.class){
-            try {
-                field = clazz.getDeclaredField(fieldName);
-            }catch (Exception ex){
-                clazz = clazz.getSuperclass();
-            }
-        }
-        if (field != null) {
-            field.setAccessible(true);
-        }
-        return field;
-
-    }
-
 
     public static String getPemSigningKey(String keyFromRegistry){
         return Base64.getEncoder().encodeToString(getSigningPublicKey(keyFromRegistry).getEncoded());

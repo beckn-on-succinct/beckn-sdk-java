@@ -171,14 +171,11 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
 
 
     public enum Status {
-        Awaiting_Agent_Acceptance,
-        Reaching_Pickup_Location,
-        Reached_Pickup_Location,
-
-        Out_for_delivery,
         Created,
+        Awaiting_Acceptance,
         Accepted,
-        In_progress,
+        Prepared, // Is based on fulfillment Status Prepared
+        In_Transit, // Is based on fulfillment status
         Completed(){
             @Override
             public boolean isOpen() {

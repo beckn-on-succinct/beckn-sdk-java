@@ -1,8 +1,11 @@
 package in.succinct.beckn;
 
 
+import com.venky.core.util.Bucket;
+import in.succinct.beckn.Invoice.Dispute.Credit;
 import in.succinct.beckn.Invoice.Dispute.Credit.Credits;
 import in.succinct.beckn.Invoice.Dispute.Disputes;
+import in.succinct.beckn.Payment.PaymentTransaction;
 import in.succinct.beckn.Payment.PaymentTransaction.PaymentTransactions;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -168,5 +171,40 @@ public class Invoice extends BecknObjectWithId{
         }
     }
     
-    
+    public Bucket getUnpaidAmount() {
+        Invoice invoice = this;
+        Bucket unpaidAmount = new Bucket(invoice.getAmount());
+        for (PaymentTransaction paymentTransaction : invoice.getPaymentTransactions()){
+            switch (paymentTransaction.getPaymentStatus()){
+                case PAID,TARGET_CREDITED-> {
+                    unpaidAmount.decrement(paymentTransaction.getAmount());
+                }
+            }
+        }
+        
+        Bucket openDisputeAmount = new Bucket();
+        for (Dispute dispute : invoice.getDisputes()){
+            switch (dispute.getStatus()){
+                case PartialAmountAuthorized,AmountAuthorized,Closed -> {
+                    Bucket authAmount = new Bucket(dispute.getAuthorizedAmount());
+                    for (Credit credit : dispute.getCredits()){
+                        switch (credit.getPaymentStatus()){
+                            case TARGET_CREDITED, PAID, CREDIT_NOTE_ACCEPTED, CREDIT_NOTE_ISSUED , PENDING, SOURCE_DEBITED->{
+                                authAmount.decrement(credit.getAmount());
+                            }
+                        }
+                    }
+                    openDisputeAmount.increment(authAmount.intValue());
+                }
+                case Open -> {
+                    openDisputeAmount.increment(dispute.getDisputeAmount());
+                }
+            }
+        }
+        if (unpaidAmount.intValue() == 0){
+            return openDisputeAmount;
+        }else {
+            return unpaidAmount;
+        }
+    }
 }

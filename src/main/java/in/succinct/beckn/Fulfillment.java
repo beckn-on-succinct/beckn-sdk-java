@@ -45,23 +45,62 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
         }
 
     }
-
+    
     public FulfillmentStop getStart() {
-        return get(FulfillmentStop.class, "start");
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.isEmpty()){
+            return null;
+        }
+        
+        return stops.get(0);
     }
-
+    
     public void setStart(FulfillmentStop start) {
-        set("start", start);
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.isEmpty()){
+            stops.add(start);
+        }else {
+            if (stops.size() > 1) {
+                stops.remove(0);
+            }
+            stops.insert(0, start);
+        }
     }
-
-    public FulfillmentStop getEnd() {
-        return get(FulfillmentStop.class, "end");
-    }
-
+    
     public void setEnd(FulfillmentStop end) {
-        set("end", end);
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.size() > 1){
+            stops.remove(stops.size()-1);
+            stops.add(end);
+        }
     }
-
+    
+    public FulfillmentStop getEnd() {
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.size() <= 1 ){
+            return null;
+        }
+        
+        return stops.get(stops.size()-1);
+    }
+    
+    
     public boolean getTracking() {
         return getBoolean("tracking");
     }

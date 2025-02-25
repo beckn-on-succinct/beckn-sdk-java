@@ -1,16 +1,26 @@
 package in.succinct.beckn;
 
+import com.venky.cache.Cache;
+import com.venky.core.util.Bucket;
 import in.succinct.beckn.CancellationTerm.CancellationTerms;
 import in.succinct.beckn.Conversation.Conversations;
+import in.succinct.beckn.Fulfillment.FulfillmentStatus;
+import in.succinct.beckn.Invoice.Dispute;
+import in.succinct.beckn.Invoice.Dispute.Credit;
+import in.succinct.beckn.Invoice.Dispute.Status;
 import in.succinct.beckn.Invoice.Invoices;
 import in.succinct.beckn.Note.Notes;
 import in.succinct.beckn.Order.Status.StatusConverter;
+import in.succinct.beckn.Payment.PaymentStatus;
+import in.succinct.beckn.Payment.PaymentTransaction;
 import in.succinct.beckn.RefundTerm.RefundTerms;
 import in.succinct.beckn.ReplacementTerm.ReplacementTerms;
 import in.succinct.beckn.ReturnTerm.ReturnTerms;
 import org.json.simple.JSONArray;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Order extends BecknObjectWithId implements TagGroupHolder{
     public Order() {
@@ -262,4 +272,48 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     public void setInvoices(Invoices invoices){
         extendedAttributes.set("invoices",invoices);
     }
+    
+    public boolean isPaid(){
+        Fulfillments fulfillments = getFulfillments();
+        Invoices invoices = getInvoices();
+        boolean paid = false;
+
+        Payments payments  = getPayments(); //These are the payment terms
+        if (invoices != null){
+            Map<String,Invoice> invoiceMap = new HashMap<>();
+            invoices.forEach((i)->invoiceMap.put(i.getFulfillmentId(),i)); //Only one invoice per fulfillment Id
+            
+            for (Payment term : payments){
+                paid = false;
+                Fulfillment fulfillment  = fulfillments.get(term.getFulfillmentId());
+                Invoice invoice = invoiceMap.get(term.getFulfillmentId());
+                if (invoice == null && fulfillment.getFulfillmentStatus().isOpen()){
+                    //Invoice is not raised. !!
+                    break;
+                }else if (invoice != null ){
+                    Bucket unpaidAmount = invoice.getUnpaidAmount();
+                    if (unpaidAmount.intValue()  == 0 ){
+                        paid = true;
+                    }else {
+                        break;
+                    }
+                }
+            }
+        }else {
+            for (Payment payment : payments){
+                paid = false;
+                switch (payment.getStatus()){
+                    case TARGET_CREDITED,PAID -> {
+                        paid = true;
+                    }
+                }
+                if (!paid) {
+                    break;
+                }
+            }
+        }
+        return paid;
+    }
+    
+    
 }

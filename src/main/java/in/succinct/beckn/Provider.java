@@ -22,7 +22,10 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     }
 
     public Locations getLocations(){
-        return get(Locations.class,"locations");
+        return getLocations(false);
+    }
+    public Locations getLocations(boolean createIfAbsent){
+        return get(Locations.class,"locations",createIfAbsent);
     }
     public void setLocations(Locations locations){
         set("locations",locations);

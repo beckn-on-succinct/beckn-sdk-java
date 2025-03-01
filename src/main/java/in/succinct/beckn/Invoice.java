@@ -47,14 +47,17 @@ public class Invoice extends BecknObjectWithId{
     }
     
     public BreakUp getBreakUp(){
-        return get(BreakUp.class, "break_up");
+        return get(BreakUp.class, "breakup");
     }
     public void setBreakUp(BreakUp break_up){
-        set("break_up",break_up);
+        set("breakup",break_up);
     }
     
     public Disputes getDisputes(){
-        return get(Disputes.class, "disputes");
+        return getDisputes(false);
+    }
+    public Disputes getDisputes(boolean createIfAbsent){
+        return get(Disputes.class, "disputes",createIfAbsent);
     }
     public void setDisputes(Disputes disputes){
         set("disputes",disputes);
@@ -66,6 +69,9 @@ public class Invoice extends BecknObjectWithId{
     public void setPaymentTransactions(PaymentTransactions payment_transactions){
         set("payment_transactions",payment_transactions);
     }
+    
+    
+    
     
     public static class Dispute extends BecknObjectWithId {
         public Dispute() {
@@ -79,6 +85,12 @@ public class Invoice extends BecknObjectWithId{
             super(object);
         }
         
+        public String getText(){
+            return get("text");
+        }
+        public void setText(String text){
+            set("text",text);
+        }
         
         
         public String getReason(){
@@ -102,6 +114,12 @@ public class Invoice extends BecknObjectWithId{
             AmountAuthorized, // Is used when payment is to be made after dispute resolution.
         }
         
+        public String getRejectReason(){
+            return get("reject_reason");
+        }
+        public void setRejectReason(String reject_reason){
+            set("reject_reason",reject_reason);
+        }
         
         public double getDisputeAmount(){
             return getDouble("dispute_amount");
@@ -117,9 +135,30 @@ public class Invoice extends BecknObjectWithId{
             set("authorized_amount",authorized_amount);
         }
         
+        public String getDisputeMessageId(){
+            return get("dispute_message_id");
+        }
+        public void setDisputeMessageId(String dispute_message_id){
+            set("dispute_message_id",dispute_message_id);
+        }
         
+        
+        public Items getItems(){
+            return get(Items.class, "items");
+        }
+        public void setItems(Items items){
+            set("items",items);
+        }
+        
+        /**
+         * Credits given for a dispute usually only one.
+         * @return Credits
+         */
         public Credits getCredits(){
-            return get(Credits.class, "credits");
+            return getCredits(false);
+        }
+        public Credits getCredits(boolean createIfAbsent){
+            return get(Credits.class, "credits",createIfAbsent);
         }
         public void setCredits(Credits credits){
             set("credits",credits);
@@ -127,6 +166,20 @@ public class Invoice extends BecknObjectWithId{
         
         
         public static class Credit extends Payment.PaymentTransaction {
+            
+            public String getId(){
+                return get("id");
+            }
+            public void setId(String id){
+                set("id",id);
+            }
+            
+            public BreakUp getBreakUp(){
+                return get(BreakUp.class, "breakup");
+            }
+            public void setBreakUp(BreakUp break_up){
+                set("breakup",break_up);
+            }
             
             public static class Credits extends BecknObjects<Credit> {
                 public Credits() {
@@ -142,7 +195,7 @@ public class Invoice extends BecknObjectWithId{
             }
         }
 
-        public static class Disputes extends BecknObjects<Dispute> {
+        public static class Disputes extends BecknObjectsWithId<Dispute> {
             public Disputes() {
             }
             
@@ -176,7 +229,7 @@ public class Invoice extends BecknObjectWithId{
         Bucket unpaidAmount = new Bucket(invoice.getAmount());
         for (PaymentTransaction paymentTransaction : invoice.getPaymentTransactions()){
             switch (paymentTransaction.getPaymentStatus()){
-                case PAID,TARGET_CREDITED-> {
+                case PAID,TARGET_CREDITED,SOURCE_DEBITED,PENDING,AUTHORIZED-> {
                     unpaidAmount.decrement(paymentTransaction.getAmount());
                 }
             }

@@ -1,25 +1,22 @@
 package in.succinct.beckn;
 
-import com.venky.cache.Cache;
 import com.venky.core.util.Bucket;
+import com.venky.core.util.ObjectUtil;
 import in.succinct.beckn.CancellationTerm.CancellationTerms;
 import in.succinct.beckn.Conversation.Conversations;
 import in.succinct.beckn.Fulfillment.FulfillmentStatus;
-import in.succinct.beckn.Invoice.Dispute;
-import in.succinct.beckn.Invoice.Dispute.Credit;
-import in.succinct.beckn.Invoice.Dispute.Status;
 import in.succinct.beckn.Invoice.Invoices;
-import in.succinct.beckn.Note.Notes;
 import in.succinct.beckn.Order.Status.StatusConverter;
-import in.succinct.beckn.Payment.PaymentStatus;
-import in.succinct.beckn.Payment.PaymentTransaction;
 import in.succinct.beckn.RefundTerm.RefundTerms;
 import in.succinct.beckn.ReplacementTerm.ReplacementTerms;
 import in.succinct.beckn.ReturnTerm.ReturnTerms;
 import org.json.simple.JSONArray;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Order extends BecknObjectWithId implements TagGroupHolder{
@@ -60,7 +57,10 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     
     
     public Provider getProvider(){
-        return get(Provider.class,"provider");
+        return getProvider(false);
+    }
+    public Provider getProvider(boolean createIfAbsent){
+        return get(Provider.class,"provider",createIfAbsent);
     }
     public void setProvider(Provider provider){
         set("provider",provider);
@@ -104,7 +104,10 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     }
 
     public Fulfillments getFulfillments(){
-        return get(Fulfillments.class, "fulfillments");
+        return getFulfillments(false);
+    }
+    public Fulfillments getFulfillments(boolean createIfAbsent){
+        return get(Fulfillments.class, "fulfillments",createIfAbsent);
     }
     public void setFulfillments(Fulfillments fulfillments){
         set("fulfillments",fulfillments);
@@ -155,7 +158,10 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
 
     
     public Payments getPayments(){
-        return get(Payments.class, "payments");
+        return getPayments(false);
+    }
+    public Payments getPayments(boolean createIfAbsent){
+        return get(Payments.class, "payments",createIfAbsent);
     }
     public void setPayments(Payments payments){
         set("payments",payments);
@@ -273,6 +279,8 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
         extendedAttributes.set("invoices",invoices);
     }
     
+    
+    
     public boolean isPaid(){
         Fulfillments fulfillments = getFulfillments();
         Invoices invoices = getInvoices();
@@ -280,8 +288,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
 
         Payments payments  = getPayments(); //These are the payment terms
         if (invoices != null){
-            Map<String,Invoice> invoiceMap = new HashMap<>();
-            invoices.forEach((i)->invoiceMap.put(i.getFulfillmentId(),i)); //Only one invoice per fulfillment Id
+            Map<String,Invoice> invoiceMap =getFulfillmentInvoiceMap();
             
             for (Payment term : payments){
                 paid = false;
@@ -303,7 +310,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
             for (Payment payment : payments){
                 paid = false;
                 switch (payment.getStatus()){
-                    case TARGET_CREDITED,PAID -> {
+                    case TARGET_CREDITED,PAID,SOURCE_DEBITED,AUTHORIZED,PENDING -> {
                         paid = true;
                     }
                 }
@@ -315,5 +322,145 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
         return paid;
     }
     
+    
+    /** Backwards compatibility */
+    public Fulfillment getFulfillment(){
+        Fulfillments fulfillments  = getFulfillments();
+        if (fulfillments.isEmpty()){
+            return null;
+        }else {
+            return fulfillments.get(0);
+        }
+    }
+    public void setFulfillment(Fulfillment fulfillment){
+        Fulfillments fulfillments  = getFulfillments(true);
+        if (fulfillment == null){
+            fulfillments.clear();
+            return;
+        }
+        
+        Fulfillment existing = fulfillments.get(fulfillment.getId());
+        if (existing == null){
+            fulfillments.add(fulfillment);
+        }else if (existing != fulfillment || existing.getInner() != fulfillment.getInner()){
+            existing.update(fulfillment);
+        }
+    }
+    
+    public Location getProviderLocation(){
+        Provider provider  = getProvider();
+        Locations locations = provider== null ? null : provider.getLocations();
+        return locations== null || locations.isEmpty() ? null : locations.get(0);
+    }
+    public void setProviderLocation(Location location){
+        Provider provider  = getProvider(true);
+        Locations locations = provider.getLocations(true);
+        Location existing = locations.get(location.getId());
+        if (existing == null){
+            locations.add(location);
+        }else if (existing != location || existing.getInner() != location.getInner()){
+            existing.update(location);
+        }
+    }
+    public Map<String,Invoice> getFulfillmentInvoiceMap(){
+        Map<String,Invoice> invoiceMap = new HashMap<>();
+        for (Invoice invoice : getInvoices()) {
+            if (invoiceMap.containsKey(invoice.getFulfillmentId())){
+                throw new RuntimeException("Multiple invoices for fulfillment!");
+            }
+            invoiceMap.put(invoice.getFulfillmentId(),invoice);
+        }
+        return invoiceMap;
+    }
+    public Invoice getInvoice(String fulfillmentId){
+        return getFulfillmentInvoiceMap().get(fulfillmentId);
+    }
+    
+    public double getTotalProductPrice(String fulfillmentId){
+        Bucket total = new Bucket();
+        getItems().forEach(i->{
+            if (i.getFulfillmentIds().getInner().contains(fulfillmentId)){
+                total.increment(i.getPrice().getValue() * i.getQuantity().getCount());
+            }
+        });
+        return total.doubleValue();
+    }
+    
+    public void move(String sourceFulfillmentId , String targetFulfillmentId, String itemId, int quantity,boolean reverseTargetStops,boolean cancelTarget){
+        
+        Fulfillment source = getFulfillments(true).get(sourceFulfillmentId);
+        Invoice sourceInvoice  = getInvoice(source.getId());
+
+        Fulfillment target = getFulfillments(true).get(targetFulfillmentId);
+        if (target == null){
+            target = getObjectCreator().create(Fulfillment.class);
+            target.update(source);
+            target.setId(targetFulfillmentId);
+            
+            if (cancelTarget) {
+                target.setFulfillmentStatus(FulfillmentStatus.Cancelled);
+            }else {
+                target.setFulfillmentStatus(FulfillmentStatus.Created);
+            }
+            FulfillmentStops stops = target.getFulfillmentStops();
+            if (reverseTargetStops) {
+                Collections.reverse(stops.getInner());
+            }
+            getFulfillments().add(target);
+        }
+
+        List<Item> fulfillmentItems = new ArrayList<>();
+        List<Item> items = new ArrayList<>();
+        getItems().forEach(item -> {
+            if (item.getFulfillmentIds().getInner().contains(sourceFulfillmentId)){
+                fulfillmentItems.add(item);
+                if (ObjectUtil.equals(item.getId(),itemId)) {
+                    items.add(item);
+                }
+            }
+        });
+        
+        for (Item item : items) {
+            if (source.getFulfillmentStatus().isOpen()){
+                int existingCount = item.getQuantity().getCount();
+                if (existingCount < quantity){
+                    throw new RuntimeException("Not as much item quantity in fulfillment");
+                }else if (existingCount == quantity){
+                    item.getFulfillmentIds().clear();
+                    item.getFulfillmentIds().add(targetFulfillmentId);
+                }else {
+                    Item newItem = item.getObjectCreator().create(Item.class);
+                    newItem.update(item);
+                    newItem.getFulfillmentIds().clear();
+                    newItem.getFulfillmentIds().add(targetFulfillmentId);
+                    newItem.getQuantity().setCount(quantity);
+                    item.getQuantity().setCount(existingCount - quantity);
+                    getItems().add(newItem);
+                }
+                
+                // create a cancel fulfillment
+            }else if (source.getFulfillmentStatus() == FulfillmentStatus.Completed){
+                int existingCount = item.getQuantity().getCount();
+                if (existingCount < quantity){
+                    throw new RuntimeException("Not as much item quantity in fulfillment");
+                }
+                
+                Item newItem = item.getObjectCreator().create(Item.class);
+                newItem.update(item);
+                newItem.getFulfillmentIds().clear();
+                newItem.getFulfillmentIds().add(targetFulfillmentId);
+                newItem.getQuantity().setCount(quantity);
+                getItems().add(newItem);
+                
+                //Create a return fulfillment
+            }else {
+                throw new RuntimeException("Already cancelled!");
+            }
+            break;
+        }
+        
+        
+        
+    }
     
 }

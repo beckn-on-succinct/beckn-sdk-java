@@ -2,7 +2,7 @@ package in.succinct.beckn;
 
 import org.json.simple.JSONObject;
 
-public class FulfillmentStop extends BecknObject {
+public class FulfillmentStop extends BecknObjectWithId {
 
     public FulfillmentStop() {
         super();
@@ -15,12 +15,6 @@ public class FulfillmentStop extends BecknObject {
         super(payload);
     }
 
-    public String getId(){
-        return get("id");
-    }
-    public void setId(String id){
-        set("id",id);
-    }
 
     public String getParentStopId(){
         return get("parent_stop_id");

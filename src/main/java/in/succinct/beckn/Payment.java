@@ -220,10 +220,10 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
     }
     
     //Old Payment Types
-    final String ON_ORDER = "ON_ORDER";
-    final String ON_FULFILLMENT = "ON_FULFILLMENT";
-    final String PRE_FULFILLMENT = "PRE_FULFILLMENT";
-    final String POST_FULFILLMENT = "POST_FULFILLMENT";
+    public static final String ON_ORDER = "ON_ORDER";
+    public static final String ON_FULFILLMENT = "ON_FULFILLMENT";
+    public static final String PRE_FULFILLMENT = "PRE_FULFILLMENT";
+    public static final String POST_FULFILLMENT = "POST_FULFILLMENT";
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
     public String getPaymentType(){

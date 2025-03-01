@@ -46,7 +46,7 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
 
     }
     
-    public FulfillmentStop getStart() {
+    public FulfillmentStop _getStart() {
         FulfillmentStops stops = getFulfillmentStops();
         if (stops == null ){
             stops = new FulfillmentStops();
@@ -59,7 +59,7 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
         return stops.get(0);
     }
     
-    public void setStart(FulfillmentStop start) {
+    public void _setStart(FulfillmentStop start) {
         FulfillmentStops stops = getFulfillmentStops();
         if (stops == null ){
             stops = new FulfillmentStops();
@@ -68,26 +68,33 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
         if (stops.isEmpty()){
             stops.add(start);
         }else {
-            if (stops.size() > 1) {
-                stops.remove(0);
+            FulfillmentStop existingStop = stops.get(start.getId());
+            if (existingStop == null){
+                stops.insert(0,start);
+            }else {
+                existingStop.update(start);
             }
-            stops.insert(0, start);
+            
         }
     }
     
-    public void setEnd(FulfillmentStop end) {
+    public void _setEnd(FulfillmentStop end) {
         FulfillmentStops stops = getFulfillmentStops();
         if (stops == null ){
             stops = new FulfillmentStops();
             setFulfillmentStops(stops);
         }
         if (stops.size() > 1){
-            stops.remove(stops.size()-1);
-            stops.add(end);
+            FulfillmentStop existingStop = stops.get(end.getId());
+            if (existingStop == null){
+                stops.add(end);
+            }else {
+                existingStop.update(end);
+            }
         }
     }
     
-    public FulfillmentStop getEnd() {
+    public FulfillmentStop _getEnd() {
         FulfillmentStops stops = getFulfillmentStops();
         if (stops == null ){
             stops = new FulfillmentStops();
@@ -238,10 +245,17 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
 
 
     public enum FulfillmentStatus {
+        Serviceable,
         Created, // PRE_ORDER
         Preparing,
         Prepared, // PRE_FULFILLMENT
         In_Transit,
+        Void(){
+            @Override
+            public boolean isOpen() {
+                return false;
+            }
+        },
         Completed(){
             @Override
             public boolean isOpen() {
@@ -273,6 +287,8 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
         TagGroupHolder.super.setTags(tags);
     }
 
+    
+    
 }
 
 

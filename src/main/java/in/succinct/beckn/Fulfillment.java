@@ -45,23 +45,69 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
         }
 
     }
-
-    public FulfillmentStop getStart() {
-        return get(FulfillmentStop.class, "start");
+    
+    public FulfillmentStop _getStart() {
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.isEmpty()){
+            return null;
+        }
+        
+        return stops.get(0);
     }
-
-    public void setStart(FulfillmentStop start) {
-        set("start", start);
+    
+    public void _setStart(FulfillmentStop start) {
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.isEmpty()){
+            stops.add(start);
+        }else {
+            FulfillmentStop existingStop = stops.get(start.getId());
+            if (existingStop == null){
+                stops.insert(0,start);
+            }else {
+                existingStop.update(start);
+            }
+            
+        }
     }
-
-    public FulfillmentStop getEnd() {
-        return get(FulfillmentStop.class, "end");
+    
+    public void _setEnd(FulfillmentStop end) {
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.size() > 1){
+            FulfillmentStop existingStop = stops.get(end.getId());
+            if (existingStop == null){
+                stops.add(end);
+            }else {
+                existingStop.update(end);
+            }
+        }
     }
-
-    public void setEnd(FulfillmentStop end) {
-        set("end", end);
+    
+    public FulfillmentStop _getEnd() {
+        FulfillmentStops stops = getFulfillmentStops();
+        if (stops == null ){
+            stops = new FulfillmentStops();
+            setFulfillmentStops(stops);
+        }
+        if (stops.size() <= 1 ){
+            return null;
+        }
+        
+        return stops.get(stops.size()-1);
     }
-
+    
+    
     public boolean getTracking() {
         return getBoolean("tracking");
     }
@@ -146,11 +192,11 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
     }
 
     public String getProviderId() {
-        return extendedAttributes.get("provider_id");
+        return getTag("provider","id");
     }
 
     public void setProviderId(String provider_id) {
-        extendedAttributes.set("provider_id", provider_id);
+        setTag("provider", "id",provider_id);
     }
 
     public Integer getRating() {
@@ -190,35 +236,45 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
     }
 
     public String getProviderName(){
-        return extendedAttributes.get("provider_name");
+        return getTag("provider","name");
     }
     public void setProviderName(String provider_name){
-        extendedAttributes.set("provider_name",provider_name);
+        setTag("provider","name",provider_name);
     }
 
-
-    public SettlementDetails getSettlementDetails(){
-        return extendedAttributes.get(SettlementDetails.class, "settlement_details");
-    }
-    public void setSettlementDetails(SettlementDetails settlement_details){
-        extendedAttributes.set("settlement_details",settlement_details);
-    }
 
 
     public enum FulfillmentStatus {
         Serviceable,
-        Pending,
-        Packed,
-        Order_picked_up,
-        Out_for_delivery,
-        Order_delivered,
-        Cancelled,
-        Return_Initiated,
-        Return_Liquidated,
-        Return_Approved,
-        Return_Rejected,
-        Return_Delivered;
+        Created, // PRE_ORDER
+        Preparing,
+        Prepared, // PRE_FULFILLMENT
+        In_Transit,
+        Void(){
+            @Override
+            public boolean isOpen() {
+                return false;
+            }
+        },
+        Completed(){
+            @Override
+            public boolean isOpen() {
+                return false;
+            }
+        }, // POST_FULFILLMENT
+        Cancelled() {
+            @Override
+            public boolean isOpen() {
+                return false;
+            }
+        };
+        
+        public boolean isOpen(){
+            return true;
+        }
+        
         public static class FulfillmentStatusConvertor extends EnumConvertor<FulfillmentStatus>{}
+        
     }
 
     @Override
@@ -231,6 +287,8 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
         TagGroupHolder.super.setTags(tags);
     }
 
+    
+    
 }
 
 

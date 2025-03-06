@@ -1,10 +1,14 @@
 package in.succinct.beckn;
 
 
-import in.succinct.beckn.PaymentType.PaymentTypeConverter;
+import in.succinct.beckn.Fulfillment.FulfillmentStatus;
+import in.succinct.beckn.Fulfillment.FulfillmentStatus.FulfillmentStatusConvertor;
+import in.succinct.beckn.Payment.PaymentStatus.PaymentStatusConvertor;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.time.Duration;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,220 +44,251 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
             throw new IllegalArgumentException();
         }
     }
-    public Params getParams(){
-        return get(Params.class,"params");
-    }
-
-    public void setParams(Params params){
-        set("params",params);
-    }
-
-
-    public PaymentType getType(){
-       return getEnum(PaymentType.class,"type", new PaymentTypeConverter());
-    }
-
-
-
-
-    public void setType(PaymentType type){
-        setEnum("type", type, new PaymentTypeConverter());
-    }
-
-    public enum PaymentStatus {
-        PAID,
-        NOT_PAID;
-        //PENDING;
-
-        public String toString(){
-            return super.toString().replace('_','-');
-        }
-    }
-    public PaymentStatus getStatus(){
-        String s =  get("status");
-        return s == null ? null : PaymentStatus.valueOf(s.replace('-','_'));
-    }
-
-    public void setStatus(PaymentStatus status){
-        set("status",status == null ? null : status.toString().replace('_','-'));
-    }
-
-    public Time getTime(){
-        return get(Time.class,"time");
-    }
-    public void setTime(Time time){
-        set("time",time);
-    }
-
-    public static class Params extends BecknObject{
-        public String getTransactionId(){
-            return get("transaction_id");
-        }
-        public void setTransactionId(String transaction_id){
-            set("transaction_id",transaction_id);
-        }
-
-        public double getAmount(){
-            return getDouble("amount");
-        }
-        public void setAmount(double amount){
-            set("amount",String.valueOf(amount));
-        }
-
-        public String getCurrency(){
-            return get("currency");
-        }
-        public void setCurrency(String currency){
-            set("currency",currency);
-        }
-
-        public String getBankCode(){
-            return get("bank_code");
-        }
-        public void setBankCode(String bank_code){
-            set("bank_code",bank_code);
-        }
-        public String getBankAccountNumber(){
-            return get("bank_account_number");
-        }
-        public void setBankAccountNumber(String bank_account_number){
-            set("bank_account_number",bank_account_number);
-        }
-
-        public String getBankAccountName(){
-            return get("bank_account_name");
-        }
-        public void setBankAccountName(String bank_account_name){
-            set("bank_account_name",bank_account_name);
-        }
-
-        public String getVirtualPaymentAddress(){
-            return get("virtual_payment_address");
-        }
-        public void setVirtualPaymentAddress(String virtual_payment_address){
-            set("virtual_payment_address",virtual_payment_address);
-        }
-
-        public String getSourceBankCode(){
-            return get("source_bank_code");
-        }
-        public void setSourceBankCode(String source_bank_code){
-            set("source_bank_code",source_bank_code);
-        }
-
-        public String getSourceBankAccountName(){
-            return get("source_bank_account_name");
-        }
-        public void setSourceBankAccountName(String source_bank_account_name){
-            set("source_bank_account_name",source_bank_account_name);
-        }
-
-        public String getSourceBankAccountNumber(){
-            return get("source_bank_account_number");
-        }
-        public void setSourceBankAccountNumber(String source_bank_account_number){
-            set("source_bank_account_number",source_bank_account_number);
-        }
-
-        public String getSourceVirtualPaymentAddress(){
-            return get("source_virtual_payment_address");
-        }
-        public void setSourceVirtualPaymentAddress(String source_virtual_payment_address){
-            set("source_virtual_payment_address",source_virtual_payment_address);
-        }
-
-        @Override
-        public boolean hasAdditionalProperties() {
-            return true;
-        }
-    }
+    
 
     public enum CollectedBy {
         BAP,
         BPP
     }
     public CollectedBy getCollectedBy(){
-        String s = extendedAttributes.get("collected_by");
+        String s = get("collected_by");
         return s == null ? null : CollectedBy.valueOf(s);
     }
-
+    
     public void setCollectedBy(CollectedBy collected_by){
-        extendedAttributes.set("collected_by",collected_by == null ? null : collected_by.toString());
+        set("collected_by",collected_by == null ? null : collected_by.toString());
     }
+    
+
+    
+    public Params getParams(){
+        return get(Params.class,"params");
+    }
+    
+    public void setParams(Params params){
+        set("params",params);
+    }
+    
+    
+    public enum PaymentStatus {
+        AUTHORIZED("AUTHORIZED"), //Buyer has money and is blocked by buyer's bank.
+        PENDING, SOURCE_DEBITED ("PENDING"), //Buyer has approved and money is credited to the collector's bank.
+        NOT_PAID, TARGET_NOT_CREDITED("NOT_PAID"), //Some failure to credit the collector's account.
+        PAID, TARGET_CREDITED("PAID"), // Collector account is credited by collector's bank
+        CREDIT_NOTE_ISSUED,
+        CREDIT_NOTE_ACCEPTED,
+        CREDIT_NOTE_REJECTED;
+        
+        final String lit;
+        PaymentStatus(){
+            this.lit = this.name();
+        }
+        PaymentStatus(String lit){
+            this.lit = lit;
+        }
+        
+        public String toString(){
+            return lit.replace('_','-');
+        }
+        
+        public String literal(){
+            return lit;
+        }
+        public static class PaymentStatusConvertor extends EnumConvertor<PaymentStatus> {
+            public String toString(PaymentStatus value){
+                return value == null ? null : value.literal().replace('_','-');
+            }
+        }
+    }
+    
+    public static class PaymentTransaction extends Params {
+        
+        
+        public PaymentMethod getPaymentMethod(){
+            return get(PaymentMethod.class, "payment_method");
+        }
+        public void setPaymentMethod(PaymentMethod payment_method){
+            set("payment_method",payment_method);
+        }
+        
+        public String getTransactionId(){
+            return get("transaction_id");
+        }
+        public void setTransactionId(String transaction_id){
+            set("transaction_id",transaction_id);
+        }
+        public Date getDate(){
+            return getDate("date");
+        }
+        public void setDate(Date date){
+            set("date",date, BecknObject.DATE_FORMAT);
+        }
+        public String getRemarks(){
+            return get("remarks");
+        }
+        public void setRemarks(String remarks){
+            set("remarks",remarks);
+        }
+        public BankAccount getSource(){
+            return new BankAccount(this.getInner(),"source");
+        }
+        public void setSource(BankAccount source){
+            new BankAccount(getInner(),"source").update(source);
+        }
+        public PaymentStatus getPaymentStatus(){
+            return getEnum(PaymentStatus.class, "status");
+        }
+        public void setPaymentStatus(PaymentStatus payment_status){
+            setEnum("status",payment_status);
+        }
+        
+        public static class PaymentTransactions extends BecknObjects<PaymentTransaction> {
+            public PaymentTransactions() {
+            }
+            
+            public PaymentTransactions(JSONArray value) {
+                super(value);
+            }
+            
+            public PaymentTransactions(String payload) {
+                super(payload);
+            }
+        }
+        
+    }
+    
+    public PaymentStatus getStatus(){
+        return getEnum(PaymentStatus.class, "status",new PaymentStatusConvertor());
+    }
+    public void setStatus(PaymentStatus payment_status){
+        setEnum("status",payment_status,new PaymentStatusConvertor());
+    }
+    
+    
+    public static class Params extends BankAccount{
+        
+        public String getCurrency(){
+            return get("currency");
+        }
+        public void setCurrency(String currency){
+            set("currency",currency);
+        }
+        
+        public double getAmount(){
+            return getDouble("amount");
+        }
+        public void setAmount(double amount){
+            set("amount",amount);
+        }
+        // Accepted payment methods
+        public BecknStrings getPaymentMethods(){
+            return get(BecknStrings.class, "payment_method_ids");
+        }
+        public void setPaymentMethods(BecknStrings payment_method_ids){
+            set("payment_method_ids",payment_method_ids);
+        }
+        
+        
+        @Override
+        public boolean hasAdditionalProperties() {
+            return true;
+        }
+    }
+
 
     public boolean isExtendedAttributesDisplayed(){
         return true;
     }
-    public NegotiationStatus getCollectedByStatus(){
-        String status =  extendedAttributes.get("collected_by_status");
-        return status == null ? null : NegotiationStatus.valueOf(status);
+    
+    
+    
+    
+    
+    // Not null
+    public String getFulfillmentId(){
+        return extendedAttributes.get("fulfillment_id");
     }
-    public void setCollectedByStatus(NegotiationStatus collected_by_status){
-        extendedAttributes.set("collected_by_status",collected_by_status == null ? null : collected_by_status.toString());
+    public void setFulfillmentId(String fulfillment_id){
+        extendedAttributes.set("fulfillment_id",fulfillment_id);
+    }
+    
+    public Fee getBuyerFinderFee(){
+        return extendedAttributes.get(Fee.class, "buyer_finder_fee");
+    }
+    public void setBuyerFinderFee(Fee buyer_finder_fee){
+        extendedAttributes.set("buyer_finder_fee",buyer_finder_fee);
+    }
+    
+    //Old Payment Types
+    public static final String ON_ORDER = "ON_ORDER";
+    public static final String ON_FULFILLMENT = "ON_FULFILLMENT";
+    public static final String PRE_FULFILLMENT = "PRE_FULFILLMENT";
+    public static final String POST_FULFILLMENT = "POST_FULFILLMENT";
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    public String getPaymentType(){
+        return get("payment_type",POST_FULFILLMENT);
+    }
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    public void setPaymentType(String payment_type){
+        set("payment_type",payment_type);
+        switch (payment_type){
+            case ON_ORDER -> {
+                setInvoiceEvent(FulfillmentStatus.Created);
+            }
+            case PRE_FULFILLMENT -> {
+                setInvoiceEvent(FulfillmentStatus.Prepared);
+            }
+            default -> {
+                setInvoiceEvent(FulfillmentStatus.Completed);
+            }
+        }
+    }
+    
+    
+    //Invoice Event
+    public FulfillmentStatus getInvoiceEvent(){
+        FulfillmentStatus status =  extendedAttributes.getEnum(FulfillmentStatus.class,"invoice_event", new FulfillmentStatusConvertor());
+        if (status == null){
+            setPaymentType(getPaymentType()); // Derived from payment type for bc.
+            status = extendedAttributes.getEnum(FulfillmentStatus.class,"invoice_event", new FulfillmentStatusConvertor());
+        }
+        return status;
+    }
+    
+    public void setInvoiceEvent(FulfillmentStatus event){
+        extendedAttributes.setEnum("invoice_event", event, new FulfillmentStatusConvertor());
+    }
+    
+    
+    /**
+     * Duration from invoice event to make payment to the collector of the invoice amount
+      * @return
+     */
+    
+    public Duration getPaymentWindow(){
+        String window = extendedAttributes.get("payment_window");
+        return window == null ? null : Duration.parse(window);
+    }
+    public void setPaymentWindow(Duration window){
+        extendedAttributes.set("payment_window",window == null ?null : window.toString());
     }
 
-
-    public CommissionType getBuyerAppFinderFeeType(){
-        String s = extendedAttributes.get("buyer_app_finder_fee_type");
-        return s == null ? null : CommissionType.valueOf(s);
-    }
-    public void setBuyerAppFinderFeeType(CommissionType buyer_app_finder_fee_type){
-        extendedAttributes.set("buyer_app_finder_fee_type",buyer_app_finder_fee_type == null ? null :buyer_app_finder_fee_type.toString());
-    }
-
-    public Double getBuyerAppFinderFeeAmount(){
-        return extendedAttributes.getDouble("buyer_app_finder_fee_amount", null);
-    }
-    public void setBuyerAppFinderFeeAmount(Double buyer_app_finder_fee_amount){
-        extendedAttributes.set("buyer_app_finder_fee_amount",buyer_app_finder_fee_amount);
-    }
-
-    public NegotiationStatus getWithholdingAmountStatus(){
-        String s = extendedAttributes.get("withholding_amount_status");
-        return s == null ? null : NegotiationStatus.valueOf(s);
-    }
-    public void setWithholdingAmountStatus(NegotiationStatus withholding_amount_status){
-        extendedAttributes.set("withholding_amount_status",withholding_amount_status == null ? null  : withholding_amount_status.toString());
-    }
-
-    public Double getWithholdingAmount(){
-        return extendedAttributes.getDouble("withholding_amount", null);
-    }
-    public void setWithholdingAmount(Double withholding_amount){
-        extendedAttributes.set("withholding_amount",withholding_amount);
-    }
-    public Duration getReturnWindow(){
-        String s = extendedAttributes.get("return_window");
+    
+    // Duration from max(invoice_event,fulfillment_completed_event to dispute the invoice)
+    // check Dispute
+    public Duration getDisputeWindow(){
+        String s = extendedAttributes.get("dispute_window");
         return s == null ? null: Duration.parse(s);
     }
-    public void setReturnWindow(Duration return_window){
-        extendedAttributes.set("return_window",return_window == null ? null : return_window.toString());
+    public void setDisputeWindow(Duration window){
+        extendedAttributes.set("dispute_window",window == null ? null : window.toString());
     }
-
-    public NegotiationStatus getReturnWindowStatus(){
-        String s = extendedAttributes.get("return_window_status");
-        return s == null ? null : NegotiationStatus.valueOf(s);
-    }
-    public void setReturnWindowStatus(NegotiationStatus return_window_status){
-        extendedAttributes.set("return_window_status",return_window_status == null ? null : return_window_status.toString());
-    }
-
-    public NegotiationStatus getSettlementBasisStatus(){
-        String s = extendedAttributes.get("settlement_basis_status");
-        return s == null ? null : NegotiationStatus.valueOf(s);
-    }
-    public void setSettlementBasisStatus(NegotiationStatus settlement_basis_status){
-        extendedAttributes.set("settlement_basis_status",settlement_basis_status == null ? null : settlement_basis_status.toString());
-    }
-
-    public SettlementBasis getSettlementBasis(){
-        String s = extendedAttributes.get("settlement_basis");
-        return s == null ? null : SettlementBasis.valueOf(s);
-    }
-    public void setSettlementBasis(SettlementBasis settlement_basis){
-        extendedAttributes.set("settlement_basis",settlement_basis == null ? null : settlement_basis.toString());
-    }
-
+    
+    
+    // Duration from max(invoice_event,fulfillment_completed_event to settle all counter party payments)
+    // check Dispute
     public Duration getSettlementWindow(){
         String sw = extendedAttributes.get("settlement_window");
         return sw == null ? null : Duration.parse(sw);
@@ -261,42 +296,11 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
     public void setSettlementWindow(Duration settlement_window){
         extendedAttributes.set("settlement_window",settlement_window == null ? null : settlement_window.toString());
     }
-
-    public NegotiationStatus getSettlementWindowStatus(){
-        String ws = extendedAttributes.get("settlement_window_status");
-        return null == ws ? null : NegotiationStatus.valueOf(ws);
-    }
-    public void setSettlementWindowStatus(NegotiationStatus settlement_window_status){
-        extendedAttributes.set("settlement_window_status",settlement_window_status == null ? null :settlement_window_status.toString());
-    }
-    public SettlementDetails getSettlementDetails(){
-        return extendedAttributes.get(SettlementDetails.class, "settlement_details");
-    }
-    public void setSettlementDetails(SettlementDetails settlement_details){
-        extendedAttributes.set("settlement_details",settlement_details);
-    }
-
-
-
-    public enum NegotiationStatus {
-        Assert,
-        Agree,
-        DisAgree,
-        Terminate,
-    }
-
-    public enum CommissionType{
-        Percent,
-        Amount
-    }
-
-    public enum SettlementBasis {
-        collection,
-        shipment,
-        delivery,
-        return_window_expiry,
-    }
-
+    
+    
+    //From the fulfillment time
+    
+    
     @Override
     public TagGroups getTags() {
         return TagGroupHolder.super.getTags();

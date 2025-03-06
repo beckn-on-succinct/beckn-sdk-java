@@ -41,7 +41,7 @@ public class ReturnTerm extends BecknObject{
         BUYER,
         PROVIDER;
 
-        public static EnumConvertor<FulfillmentMangedBy> convertor = new EnumConvertor(FulfillmentMangedBy.class);
+        public static EnumConvertor<FulfillmentMangedBy> convertor = new EnumConvertor<>(FulfillmentMangedBy.class);
     }
 
 

@@ -1,6 +1,6 @@
 package in.succinct.beckn;
 
-public class Document extends in.succinct.beckn.BecknObject {
+public class Document extends in.succinct.beckn.BecknObjectWithId {
     public Document() {super(); }
 
     public String getUrl(){

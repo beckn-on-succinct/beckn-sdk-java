@@ -1,11 +1,23 @@
 package in.succinct.beckn;
 
-import in.succinct.beckn.Fulfillment.RetailFulfillmentType;
+import com.venky.core.util.Bucket;
+import com.venky.core.util.ObjectUtil;
+import in.succinct.beckn.CancellationTerm.CancellationTerms;
+import in.succinct.beckn.Conversation.Conversations;
+import in.succinct.beckn.Fulfillment.FulfillmentStatus;
+import in.succinct.beckn.Invoice.Invoices;
 import in.succinct.beckn.Order.Status.StatusConverter;
-import in.succinct.beckn.ReturnReasons.ReturnRejectReason;
+import in.succinct.beckn.RefundTerm.RefundTerms;
+import in.succinct.beckn.ReplacementTerm.ReplacementTerms;
+import in.succinct.beckn.ReturnTerm.ReturnTerms;
 import org.json.simple.JSONArray;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Order extends BecknObjectWithId implements TagGroupHolder{
     public Order() {
@@ -14,21 +26,46 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     public Order(String payload){
         super(payload);
     }
-
+    
+    public BecknStrings getRefOrderIds(){
+        return get(BecknStrings.class,"ref_order_ids",true);
+    }
+    public void setRefOrderIds(BecknStrings ref_order_ids){
+        set("ref_order_ids",ref_order_ids);
+    }
+    
+    
+    public void setStatus(Status status){
+        setEnum("status", status, new StatusConverter());
+    }
+    public Status getStatus(){
+        return getEnum(Status.class, "status", new StatusConverter());
+    }
+    
+    public OrderType getType(){
+        return getEnum(OrderType.class, "type");
+    }
+    public void setType(OrderType order_type){
+        setEnum("type",order_type);
+    }
+    
+    
+    public enum OrderType {
+        DRAFT,
+        DEFAULT
+    }
+    
+    
     public Provider getProvider(){
-        return get(Provider.class,"provider");
+        return getProvider(false);
+    }
+    public Provider getProvider(boolean createIfAbsent){
+        return get(Provider.class,"provider",createIfAbsent);
     }
     public void setProvider(Provider provider){
         set("provider",provider);
     }
 
-    public Location getProviderLocation(){
-        return extendedAttributes.get(Location.class,"provider_location");
-    }
-
-    public void setProviderLocation(Location location){
-        extendedAttributes.set("provider_location",location);
-    }
 
     public NonUniqueItems getItems(){
         return get(NonUniqueItems.class,"items");
@@ -42,6 +79,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
             super(false);
         }
     }
+
 
     public AddOns getAddOns(){
         return get(AddOns.class, "add_ons");
@@ -65,45 +103,51 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
         set("billing",billing);
     }
 
-
-    public Fulfillment getFulfillment(){
-        return extendedAttributes.get(Fulfillment.class,"fulfillment");
-    }
-    public void setFulfillment(Fulfillment fulfillment){
-        extendedAttributes.set("fulfillment",fulfillment);
-    }
-
-    public Fulfillment getPrimaryFulfillment(){
-        Fulfillments fulfillments = getFulfillments();
-        if (fulfillments == null || fulfillments.isEmpty()){
-            return null;
-        }
-        for (Fulfillment f : fulfillments){
-            try {
-                if (f.getType() != null && (RetailFulfillmentType.valueOf(f.getType()).matches(RetailFulfillmentType.store_pickup) || RetailFulfillmentType.valueOf(f.getType()).matches(RetailFulfillmentType.home_delivery))) {
-                    return f;
-                }
-            }catch (Exception ex){
-                return f;
-            }
-        }
-        return null;
-    }
-    public void setPrimaryFulfillment(Fulfillment primaryFulfillment){
-        Fulfillments fulfillments = getFulfillments();
-        if (fulfillments == null ){
-            fulfillments = new Fulfillments();
-            setFulfillments(fulfillments);
-        }
-        fulfillments.add(primaryFulfillment,true);
-    }
-
     public Fulfillments getFulfillments(){
-        return extendedAttributes.get(Fulfillments.class, "fulfillments");
+        return getFulfillments(false);
+    }
+    public Fulfillments getFulfillments(boolean createIfAbsent){
+        return get(Fulfillments.class, "fulfillments",createIfAbsent);
     }
     public void setFulfillments(Fulfillments fulfillments){
-        extendedAttributes.set("fulfillments",fulfillments);
+        set("fulfillments",fulfillments);
     }
+    
+    public Cancellation getCancellation(){
+        return get(Cancellation.class, "cancellation");
+    }
+    public void setCancellation(Cancellation cancellation){
+        set("cancellation",cancellation);
+    }
+    
+    public CancellationTerms getCancellationTerms(){
+        return get(CancellationTerms.class, "cancellation_terms");
+    }
+    public void setCancellationTerms(CancellationTerms cancellation_terms){
+        set("cancellation_terms",cancellation_terms);
+    }
+    
+    public RefundTerms getRefundTerms(){
+        return get(RefundTerms.class, "refund_terms");
+    }
+    public void setRefundTerms(RefundTerms refund_terms){
+        set("refund_terms",refund_terms);
+    }
+    
+    public ReplacementTerms getReplacementTerms(){
+        return get(ReplacementTerms.class, "replacement_terms");
+    }
+    public void setReplacementTerms(ReplacementTerms replacement_terms){
+        set("replacement_terms",replacement_terms);
+    }
+    
+    public ReturnTerms getReturnTerms(){
+        return get(ReturnTerms.class, "return_terms");
+    }
+    public void setReturnTerms(ReturnTerms return_terms){
+        set("return_terms",return_terms);
+    }
+    
 
     public Quote getQuote(){
         return get(Quote.class,"quote");
@@ -112,15 +156,12 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
         set("quote",quote);
     }
 
-    public Payment getPayment(){
-        return extendedAttributes.get(Payment.class,"payment");
-    }
-    public void setPayment(Payment payment){
-        extendedAttributes.set("payment",payment);
-    }
-
+    
     public Payments getPayments(){
-        return get(Payments.class, "payments");
+        return getPayments(false);
+    }
+    public Payments getPayments(boolean createIfAbsent){
+        return get(Payments.class, "payments",createIfAbsent);
     }
     public void setPayments(Payments payments){
         set("payments",payments);
@@ -139,41 +180,49 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     public void setUpdatedAt(Date date){
         set("updated_at",date,TIMESTAMP_FORMAT);
     }
-    public void setState(Status state){
-        setEnum("state", state, new StatusConverter());
+    
+    public Xinput getXinput(){
+        return get(Xinput.class, "xinput");
     }
-    public Status getState(){
-        return getEnum(Status.class, "state", new StatusConverter());
+    public void setXinput(Xinput xinput){
+        set("xinput",xinput);
     }
-
-
-
-
-
-    public Documents getDocuments(){
-        return get(Documents.class,"documents");
+    
+    @Override
+    public TagGroups getTags() {
+        return TagGroupHolder.super.getTags();
     }
-    public void setDocuments(Documents documents){
-        set("documents",documents);
+    
+    @Override
+    public void setTags(TagGroups tags) {
+        TagGroupHolder.super.setTags(tags);
     }
-
+    
+    
     public boolean isExtendedAttributesDisplayed(){
         return true;
     }
-
-    public Cancellation getCancellation(){
-        return extendedAttributes.get(Cancellation.class, "cancellation");
+    
+    
+    public Documents getDocuments(){
+        return extendedAttributes.get(Documents.class,"documents");
     }
-    public void setCancellation(Cancellation cancellation){
-        extendedAttributes.set("cancellation",cancellation);
+    public void setDocuments(Documents documents){
+        extendedAttributes.set("documents",documents);
     }
-
+    
+    public Conversations getConversations(){
+        return extendedAttributes.get(Conversations.class, "conversations");
+    }
+    public void setConversations(Conversations conversations){
+        extendedAttributes.set("conversations",conversations);
+    }
 
 
     public enum Status {
         Created,
         Awaiting_Acceptance,
-        Accepted,
+        Accepted, // Is when fulfillment status is preparing
         Prepared, // Is based on fulfillment Status Prepared
         In_Transit, // Is based on fulfillment status
         Completed(){
@@ -219,375 +268,199 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
             super(payload);
         }
     }
-    // Fields added for Reconcilliation and Settlements
-    public String getInvoiceNo(){
-        return extendedAttributes.get("invoice_no");
-    }
-    public void setInvoiceNo(String invoice_no){
-        extendedAttributes.set("invoice_no",invoice_no);
-    }
-
-    public Amount getIncomeTax(){
-        return extendedAttributes.get(Price.class, "income_tax");
-    }
-    public void setIncomeTax(Amount income_tax){
-        extendedAttributes.set("income_tax",income_tax);
-    }
-
-    public Amount getGst(){
-        return extendedAttributes.get(Amount.class, "gst");
-    }
-    public void setGst(Amount gst){
-        extendedAttributes.set("gst",gst);
-    }
-
-    public Amount getIncomeTaxWithheld(){
-        return extendedAttributes.get(Amount.class, "income_tax_withheld");
-    }
-    public void setIncomeTaxWithheld(Amount income_tax_withheld){
-        extendedAttributes.set("income_tax_withheld",income_tax_withheld);
-    }
-
-    public Amount getGstWithheld(){
-        return extendedAttributes.get(Amount.class, "gst_withheld");
-    }
-    public void setGstWithheld(Amount gst_withheld){
-        extendedAttributes.set("gst_withheld",gst_withheld);
-    }
-
-    public OrderReconStatus getOrderReconStatus(){
-        return extendedAttributes.getEnum(OrderReconStatus.class, "order_recon_status");
-    }
-    public void setOrderReconStatus(OrderReconStatus order_recon_status){
-        extendedAttributes.setEnum("order_recon_status",order_recon_status);
-    }
-
-    public SettlementCorrection getSettlementCorrection(){
-        return extendedAttributes.get(SettlementCorrection.class, "settlement_correction");
-    }
-    public void setSettlementCorrection(SettlementCorrection settlement_correction){
-        extendedAttributes.set("settlement_correction",settlement_correction);
-    }
-
-
-    public String getCollectorSubscriberId(){
-        return extendedAttributes.get("collector_subscriber_id");
-    }
-    public void setCollectorSubscriberId(String collector_subscriber_id){
-        extendedAttributes.set("collector_subscriber_id",collector_subscriber_id);
-    }
-
-    public String getReceiverSubscriberId(){
-        return extendedAttributes.get("receiver_subscriber_id");
-    }
-    public void setReceiverSubscriberId(String receiver_subscriber_id){
-        extendedAttributes.set("receiver_subscriber_id",receiver_subscriber_id);
-    }
-
-
-    public Payer getPayer(){
-        return extendedAttributes.get(Payer.class, "payer");
-    }
-    public void setPayer(Payer payer){
-        extendedAttributes.set("payer",payer);
-    }
-
-
-    public enum SettlementReasonCode {
-        ORDER_PAYMENT,
-        PART_REFUND,
-        REFUND,
-        CORRECTION,
-        BUYER_APP_FEE_PAYMENT,
-        BUYER_APP_FEE_GST_PAYMENT;
-
-        public static EnumConvertor<SettlementReasonCode> convertor = new OrdinalBasedEnumConvertor<>(SettlementReasonCode.class);
-    }
-
-    public SettlementReasonCode getSettlementReasonCode(){
-        return extendedAttributes.getEnum(SettlementReasonCode.class, "settlement_reason_code",SettlementReasonCode.convertor);
-    }
-    public void setSettlementReasonCode(SettlementReasonCode settlement_reason_code){
-        extendedAttributes.setEnum("settlement_reason_code",settlement_reason_code,SettlementReasonCode.convertor);
-    }
-
-    public String getCollectionTransactionId(){
-        return extendedAttributes.get("collection_transaction_id");
-    }
-    public void setCollectionTransactionId(String transaction_id){
-        extendedAttributes.set("collection_transaction_id",transaction_id);
-    }
-
-    public String getSettlementId(){
-        return extendedAttributes.get("settlement_id");
-    }
-    public void setSettlementId(String settlement_id){
-        extendedAttributes.set("settlement_id",settlement_id);
-    }
     
-    public String getSettlementReference(){
-        return extendedAttributes.get("settlement_reference");
-    }
-    public void setSettlementReference(String settlement_reference){
-        extendedAttributes.set("settlement_reference",settlement_reference);
-    }
-
-
-    public enum ReconStatus {
-        PAID,
-        OVER_PAID,
-        UNDER_PAID,
-        NOT_PAID;
-
-        public static EnumConvertor<ReconStatus> convertor = new OrdinalBasedEnumConvertor<>(ReconStatus .class);
-
-    }
-
-    public ReconStatus getReconStatus(){
-        return extendedAttributes.getEnum(ReconStatus.class, "recon_status" , ReconStatus.convertor);
-    }
-    public void setReconStatus(ReconStatus recon_status){
-        extendedAttributes.setEnum("recon_status",recon_status, ReconStatus.convertor);
-    }
-
-    public Double getDiffAmount(){
-        return extendedAttributes.getDouble("diff_amount", null);
-    }
-    public void setDiffAmount(Double diff_amount){
-        extendedAttributes.set("diff_amount",diff_amount);
-    }
-
-
-    public ReconStatus getCounterpartyReconStatus(){
-        return extendedAttributes.getEnum(ReconStatus.class, "counterparty_recon_status");
-    }
-    public void setCounterpartyReconStatus(ReconStatus counterparty_recon_status){
-        extendedAttributes.setEnum("counterparty_recon_status",counterparty_recon_status);
-    }
-
-
-
-    public Amount getCounterpartyDiffAmount(){
-        return get(Amount.class, "counterparty_diff_amount");
-    }
-    public void setCounterpartyDiffAmount(Amount counterparty_diff_amount){
-        set("counterparty_diff_amount",counterparty_diff_amount);
-    }
-
-    public Descriptor getReconMessage(){
-        return extendedAttributes.get(Descriptor.class, "message");
-    }
-    public void setReconMessage(Descriptor recon_message){
-        extendedAttributes.set("message",recon_message);
-    }
-
-
-    public enum OrderReconStatus {
-        PROVISIONAL,
-        FINALE,
-        DEEMED_SETTLED;
-
-        public static EnumConvertor<OrderReconStatus> convertor = new OrdinalBasedEnumConvertor<>(OrderReconStatus.class);
-
-    }
-
-
-
-
-
-    public Returns getReturns(){
-        return extendedAttributes.get(Returns.class, "returns");
-    }
-    public void setReturns(Returns r){
-        extendedAttributes.set("returns",r);
-    }
-
-    public Refunds getRefunds(){
-        return extendedAttributes.get(Refunds.class, "refunds");
-    }
-    public void setRefunds(Refunds refunds){
-        extendedAttributes.set("refunds",refunds);
-    }
-
-    public static class Returns extends BecknObjectsWithId<Return>{
-        public Returns() {
-            super();
-        }
-
-        public Returns(JSONArray array) {
-            super(array);
-        }
-
-        public Returns(String payload) {
-            super(payload);
-        }
-    }
-
-    public static class Return extends BecknObjectWithId{
-        public Return() {
-        }
-
-
-        public boolean isOpen(){
-            ReturnStatus returnStatus = getReturnStatus();
-            return returnStatus != null && returnStatus.compareTo(ReturnStatus.OPEN) <= 0;
-        }
-
-        public boolean isRefunded(){
-            ReturnStatus returnStatus = getReturnStatus();
-            return returnStatus  == ReturnStatus.REFUNDED || getRefundId() != null;
-        }
-
-        public boolean isClosed(){
-            return !isOpen();
-        }
-
-        public String getFulfillmentId(){
-            return get("fulfillment_id");
-        }
-        public void setFulfillmentId(String fulfillment_id){
-            set("fulfillment_id",fulfillment_id);
-        }
-
-        public String getReturnMessageId(){
-            return get("return_message_id");
-        }
-        public void setReturnMessageId(String return_message_id){
-            set("return_message_id",return_message_id);
-        }
-        public Return(String payload) {
-            super(payload);
-        }
-
-        public ReturnStatus getReturnStatus(){
-            return getEnum(ReturnStatus.class, "return_status");
-        }
-        public void setReturnStatus(ReturnStatus return_status){
-            setEnum("return_status",return_status);
-        }
-
-        public ReturnRejectReason getReturnRejectReason(){
-            return getEnum(ReturnRejectReason.class, "return_reject_reason");
-        }
-        public void setReturnRejectReason(ReturnRejectReason return_reject_reason){
-            setEnum("return_reject_reason",return_reject_reason);
-        }
-
-
-        public Amount getRefund(){
-            return get(Amount.class, "refund");
-        }
-        public void setRefund(Amount refund){
-            set("refund",refund);
-        }
-
-        public NonUniqueItems getItems(){
-            return get(NonUniqueItems.class, "items");
-        }
-        public void setItems(NonUniqueItems items){
-            set("items",items);
-        }
-
-        public Date getCreatedAt(){
-            return getTimestamp("created_at");
-        }
-        public void setCreatedAt(Date created_at){
-            set("created_at",created_at,TIMESTAMP_FORMAT);
-        }
-
-        public boolean isLiquidated(){
-            return getBoolean("liquidated");
-        }
-        public void setLiquidated(boolean liquidated){
-            set("liquidated",liquidated);
-        }
-
-        public enum ReturnStatus {
-            REQUESTED,
-            OPEN,
-            DECLINED,
-            REFUNDED,
-            CLOSED,
-            CANCELED;
-
-            public static EnumConvertor<ReturnStatus> convertor = new EnumConvertor<>(ReturnStatus.class);
-        }
-
-        public String getRefundId(){
-            return get("refund_id");
-        }
-        public void setRefundId(String refund_id){
-            set("refund_id",refund_id);
-        }
-    }
-
-    public static class Refunds extends BecknObjectsWithId<Refund> {
-        public Refunds() {
-        }
-
-        public Refunds(String payload) {
-            super(payload);
-        }
-
-        public Refunds(JSONArray array) {
-            super(array);
-        }
-    }
-
-    public static class Refund extends BecknObjectWithId{
-
-        public Date getCreatedAt(){
-            return getTimestamp("created_at");
-        }
-        public void setCreatedAt(Date created_at){
-            set("created_at",created_at,TIMESTAMP_FORMAT);
-        }
-
-        public String getFulfillmentId(){
-            return get("fulfillment_id");
-        }
-        public void setFulfillmentId(String fulfillment_id){
-            set("fulfillment_id",fulfillment_id);
-        }
-
-        public NonUniqueItems getItems(){
-            return get(NonUniqueItems.class, "items");
-        }
-        public void setItems(NonUniqueItems items){
-            set("items",items);
-        }
-
-    }
 
     
-    public String getBppTaxNumber(){
-        return extendedAttributes.get("bpp_tax_number");
+    
+    public Invoices getInvoices(){
+        return extendedAttributes.get(Invoices.class, "invoices");
     }
-    public void setBppTaxNumber(String bpp_tax_number){
-        extendedAttributes.set("bpp_tax_number",bpp_tax_number);
+    public void setInvoices(Invoices invoices){
+        extendedAttributes.set("invoices",invoices);
     }
-    public String getBapTaxNumber(){
-        return extendedAttributes.get("bap_tax_number");
-    }
-    public void setBapTaxNumber(String bap_tax_number){
-        extendedAttributes.set("bap_tax_number",bap_tax_number);
-    }
+    
+    
+    
+    public boolean isPaid(){
+        Fulfillments fulfillments = getFulfillments();
+        Invoices invoices = getInvoices();
+        boolean paid = false;
 
-    public BecknStrings getRefOrderIds(){
-        return get(BecknStrings.class,"ref_order_ids",true);
+        Payments payments  = getPayments(); //These are the payment terms
+        if (invoices != null){
+            Map<String,Invoice> invoiceMap =getFulfillmentInvoiceMap();
+            
+            for (Payment term : payments){
+                paid = false;
+                Fulfillment fulfillment  = fulfillments.get(term.getFulfillmentId());
+                Invoice invoice = invoiceMap.get(term.getFulfillmentId());
+                if (invoice == null && fulfillment.getFulfillmentStatus().isOpen()){
+                    //Invoice is not raised. !!
+                    break;
+                }else if (invoice != null ){
+                    Bucket unpaidAmount = invoice.getUnpaidAmount();
+                    if (unpaidAmount.intValue()  == 0 ){
+                        paid = true;
+                    }else {
+                        break;
+                    }
+                }
+            }
+        }else {
+            for (Payment payment : payments){
+                paid = false;
+                switch (payment.getStatus()){
+                    case TARGET_CREDITED,PAID,SOURCE_DEBITED,AUTHORIZED,PENDING -> {
+                        paid = true;
+                    }
+                }
+                if (!paid) {
+                    break;
+                }
+            }
+        }
+        return paid;
     }
-    public void setRefOrderIds(BecknStrings ref_order_ids){
-        set("ref_order_ids",ref_order_ids);
+    
+    
+    /** Backwards compatibility */
+    public Fulfillment getFulfillment(){
+        Fulfillments fulfillments  = getFulfillments();
+        if (fulfillments.isEmpty()){
+            return null;
+        }else {
+            return fulfillments.get(0);
+        }
     }
+    public void setFulfillment(Fulfillment fulfillment){
+        Fulfillments fulfillments  = getFulfillments(true);
+        if (fulfillment == null){
+            fulfillments.clear();
+            return;
+        }
+        
+        Fulfillment existing = fulfillments.get(fulfillment.getId());
+        if (existing == null){
+            fulfillments.add(fulfillment);
+        }else if (existing != fulfillment || existing.getInner() != fulfillment.getInner()){
+            existing.update(fulfillment);
+        }
+    }
+    
+    public Location getProviderLocation(){
+        Provider provider  = getProvider();
+        Locations locations = provider== null ? null : provider.getLocations();
+        return locations== null || locations.isEmpty() ? null : locations.get(0);
+    }
+    public void setProviderLocation(Location location){
+        Provider provider  = getProvider(true);
+        Locations locations = provider.getLocations(true);
+        Location existing = locations.get(location.getId());
+        if (existing == null){
+            locations.add(location);
+        }else if (existing != location || existing.getInner() != location.getInner()){
+            existing.update(location);
+        }
+    }
+    public Map<String,Invoice> getFulfillmentInvoiceMap(){
+        Map<String,Invoice> invoiceMap = new HashMap<>();
+        for (Invoice invoice : getInvoices()) {
+            if (invoiceMap.containsKey(invoice.getFulfillmentId())){
+                throw new RuntimeException("Multiple invoices for fulfillment!");
+            }
+            invoiceMap.put(invoice.getFulfillmentId(),invoice);
+        }
+        return invoiceMap;
+    }
+    public Invoice getInvoice(String fulfillmentId){
+        return getFulfillmentInvoiceMap().get(fulfillmentId);
+    }
+    
+    public double getTotalProductPrice(String fulfillmentId){
+        Bucket total = new Bucket();
+        getItems().forEach(i->{
+            if (i.getFulfillmentIds().getInner().contains(fulfillmentId)){
+                total.increment(i.getPrice().getValue() * i.getQuantity().getCount());
+            }
+        });
+        return total.doubleValue();
+    }
+    
+    public void move(String sourceFulfillmentId , String targetFulfillmentId, String itemId, int quantity,boolean reverseTargetStops,boolean cancelTarget){
+        
+        Fulfillment source = getFulfillments(true).get(sourceFulfillmentId);
+        Invoice sourceInvoice  = getInvoice(source.getId());
 
+        Fulfillment target = getFulfillments(true).get(targetFulfillmentId);
+        if (target == null){
+            target = getObjectCreator().create(Fulfillment.class);
+            target.update(source);
+            target.setId(targetFulfillmentId);
+            
+            if (cancelTarget) {
+                target.setFulfillmentStatus(FulfillmentStatus.Cancelled);
+            }else {
+                target.setFulfillmentStatus(FulfillmentStatus.Created);
+            }
+            FulfillmentStops stops = target.getFulfillmentStops();
+            if (reverseTargetStops) {
+                Collections.reverse(stops.getInner());
+            }
+            getFulfillments().add(target);
+        }
 
-    @Override
-    public TagGroups getTags() {
-        return TagGroupHolder.super.getTags();
+        List<Item> fulfillmentItems = new ArrayList<>();
+        List<Item> items = new ArrayList<>();
+        getItems().forEach(item -> {
+            if (item.getFulfillmentIds().getInner().contains(sourceFulfillmentId)){
+                fulfillmentItems.add(item);
+                if (ObjectUtil.equals(item.getId(),itemId)) {
+                    items.add(item);
+                }
+            }
+        });
+        
+        for (Item item : items) {
+            if (source.getFulfillmentStatus().isOpen()){
+                int existingCount = item.getQuantity().getCount();
+                if (existingCount < quantity){
+                    throw new RuntimeException("Not as much item quantity in fulfillment");
+                }else if (existingCount == quantity){
+                    item.getFulfillmentIds().clear();
+                    item.getFulfillmentIds().add(targetFulfillmentId);
+                }else {
+                    Item newItem = item.getObjectCreator().create(Item.class);
+                    newItem.update(item);
+                    newItem.getFulfillmentIds().clear();
+                    newItem.getFulfillmentIds().add(targetFulfillmentId);
+                    newItem.getQuantity().setCount(quantity);
+                    item.getQuantity().setCount(existingCount - quantity);
+                    getItems().add(newItem);
+                }
+                
+                // create a cancel fulfillment
+            }else if (source.getFulfillmentStatus() == FulfillmentStatus.Completed){
+                int existingCount = item.getQuantity().getCount();
+                if (existingCount < quantity){
+                    throw new RuntimeException("Not as much item quantity in fulfillment");
+                }
+                
+                Item newItem = item.getObjectCreator().create(Item.class);
+                newItem.update(item);
+                newItem.getFulfillmentIds().clear();
+                newItem.getFulfillmentIds().add(targetFulfillmentId);
+                newItem.getQuantity().setCount(quantity);
+                getItems().add(newItem);
+                
+                //Create a return fulfillment
+            }else {
+                throw new RuntimeException("Already cancelled!");
+            }
+            break;
+        }
+        
+        
+        
     }
-
-    @Override
-    public void setTags(TagGroups tags) {
-        TagGroupHolder.super.setTags(tags);
-    }
+    
 }

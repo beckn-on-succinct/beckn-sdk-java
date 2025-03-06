@@ -448,7 +448,7 @@ public class SampleUseCase {
     public void testNirmal() throws Exception {
         String spublic = "AAAAC3NzaC1lZDI1NTE5AAAAIMLpt4ysQUXtWZkrsRjtBbctht7xdOKT+kS97TZ7MNrX";
         byte[] bytes = Base64.getDecoder().decode(spublic);
-        PublicKey key = KeyFactory.getInstance("Ed25519").generatePublic(new OpenSSHPublicKeySpec(bytes));
+        PublicKey key  = Crypt.getInstance().getPublicKey("Ed25519",spublic);
         Assert.assertNotNull(key);
 
         PublicKey k2 = Request.getSigningPublicKey("X+jgcPXHD4kFzvcbb3eaxWRA5UwB8Mm6IykeTPADofU=");
@@ -469,20 +469,14 @@ public class SampleUseCase {
         String pv = "RUp8sKmyp0C3IBapYH3BUeQi5GN7zcQgM6Hvn7Y4oGE=";
         String pb = "X+jgcPXHD4kFzvcbb3eaxWRA5UwB8Mm6IykeTPADofU=";
 
-        Ed25519PrivateKeyParameters privateKeyParameters = new Ed25519PrivateKeyParameters(Base64.getDecoder().decode(pv),0);
-        Ed25519PublicKeyParameters publicKeyParameters = new Ed25519PublicKeyParameters(Base64.getDecoder().decode(pb),0);
-
-        String pvPem = Base64.getEncoder().encodeToString(new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
-                new DEROctetString(privateKeyParameters.getEncoded())).getEncoded());
-        PrivateKey privateKey = getPrivateKey("Ed25519",Base64.getDecoder().decode(pvPem));
+        PrivateKey privateKey = Crypt.getInstance().getPrivateKey("Ed25519", pv);
         Assert.assertNotNull(privateKey);
-        String  pbPem = Base64.getEncoder().encodeToString(new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),publicKeyParameters.getEncoded()).getEncoded());
 
-        PublicKey publicKey = getPublicKey("Ed25519",Base64.getDecoder().decode(pbPem));
+        PublicKey publicKey = Crypt.getInstance().getPublicKey("Ed25519",pb);
         Assert.assertNotNull(publicKey);
 
-        System.out.println("Private : " +pvPem);
-        System.out.println("Public: " + pbPem);
+        System.out.println("Private : " + Crypt.getInstance().getBase64Encoded(privateKey));
+        System.out.println("Public: " + Crypt.getInstance().getBase64Encoded(publicKey));
 
     }
     @Test
@@ -490,7 +484,8 @@ public class SampleUseCase {
         String pv = "MC4CAQAwBQYDK2VwBCIEIEVKfLCpsqdAtyAWqWB9wVHkIuRje83EIDOh75+2OKBh";
         String pb = "MCowBQYDK2VwAyEAX+jgcPXHD4kFzvcbb3eaxWRA5UwB8Mm6IykeTPADofU=";
 
-        PrivateKey privateKey = getPrivateKey("Ed25519",Base64.getDecoder().decode(pv));
+        
+        PrivateKey privateKey = Crypt.getInstance().getPrivateKey("Ed25519", Base64.getDecoder().decode(pv));
         Assert.assertNotNull(privateKey);
         BCEdDSAPrivateKey privateKey1 = (BCEdDSAPrivateKey)privateKey;
         Field f = privateKey1.getClass().getSuperclass()
@@ -508,11 +503,16 @@ public class SampleUseCase {
 
         String pbRaw = Base64.getEncoder().encodeToString(publicKeyParameters1.getEncoded());
         String pvRaw = Base64.getEncoder().encodeToString(privateKeyParameters1.getEncoded());
+        
         String expectedPvRaw = "RUp8sKmyp0C3IBapYH3BUeQi5GN7zcQgM6Hvn7Y4oGE=";
         String expectedPbRaw = "X+jgcPXHD4kFzvcbb3eaxWRA5UwB8Mm6IykeTPADofU=";
+        
         Assert.assertEquals(pbRaw,expectedPbRaw);
         Assert.assertEquals(pvRaw,expectedPvRaw);
-
+        
+        Assert.assertEquals(Crypt.getInstance().getBase64Encoded(publicKey,false),expectedPbRaw);
+        Assert.assertEquals(Crypt.getInstance().getBase64Encoded(privateKey, false),expectedPvRaw);
+        
         System.out.println("Private : " +pvRaw);
         System.out.println("Public: " + pbRaw);
     }
@@ -528,6 +528,7 @@ public class SampleUseCase {
         System.out.println("\nPrivate:" + Base64.getEncoder().encodeToString(privateKeyParameters.getEncoded()));
         System.out.println("\nPublic:" + Base64.getEncoder().encodeToString(publicKeyParameters.getEncoded()));
 
+        Assert.assertNotNull(Crypt.getInstance().getPrivateKey("Ed25519",privateKeyParameters.getEncoded()));
 
 
     }

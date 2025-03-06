@@ -1,6 +1,8 @@
 package in.succinct.beckn;
 
+import com.venky.core.util.ObjectUtil;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import java.time.Duration;
 import java.util.Date;
@@ -20,7 +22,10 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     }
 
     public Locations getLocations(){
-        return get(Locations.class,"locations");
+        return getLocations(false);
+    }
+    public Locations getLocations(boolean createIfAbsent){
+        return get(Locations.class,"locations",createIfAbsent);
     }
     public void setLocations(Locations locations){
         set("locations",locations);
@@ -54,12 +59,6 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     }
 
 
-    public String getBppId(){
-        return extendedAttributes.get("bpp_id");
-    }
-    public void setBppId(String bpp_id){
-        extendedAttributes.set("bpp_id",bpp_id);
-    }
     public Long getTtl(){
         String ttl = get("ttl");
         return ttl == null ? null : Duration.parse(ttl).getSeconds();
@@ -116,10 +115,76 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
         return true;
     }
     public String getFssaiLicenceNo(){
-        return extendedAttributes.get("fssai_licence_no");
+        return getTag("licenses", "fssai");
     }
     public void setFssaiLicenceNo(String fssai_licence_no){
-        extendedAttributes.set("fssai_licence_no",fssai_licence_no);
+        setTag("licenses","fssai",fssai_licence_no);
+    }
+    public String getBppId(){
+        return getTag("bpp","id");
+    }
+    public void setBppId(String bpp_id){
+        setTag("bpp","id",bpp_id);
+    }
+    
+    public Directories getDirectories(){
+        Directories directories = getObjectCreator().create(Directories.class);
+        TagGroups groups = getTags();
+        if (groups != null) {
+            for (TagGroup tag : groups) {
+                if (ObjectUtil.equals(tag.getId(), "directories")) {
+                    for (TagGroup tagGroup : tag.getList()) {
+                        Directory directory = directories.getObjectCreator().create(Directory.class);
+                        directory.setId(tagGroup.getId());
+                        directory.setDescriptor(new Descriptor() {{
+                            setName(tagGroup.getValue());
+                        }});
+                        directories.add(directory);
+                    }
+                }
+            }
+        }
+        return directories;
+    }
+    public void setDirectories(Directories directories){
+        for (Directory directory : directories) {
+            setTag("directories",directory.getId(),directory.getDescriptor().getName());
+        }
+    }
+    
+    
+    
+    public static class Directories extends BecknObjectsWithId<Directory> {
+        public Directories() {
+        }
+        
+        public Directories(String payload) {
+            super(payload);
+        }
+        
+        public Directories(JSONArray array) {
+            super(array);
+        }
+    }
+    public static class Directory extends BecknObjectWithId {
+        public Directory() {
+        }
+        
+        public Directory(String payload) {
+            super(payload);
+        }
+        
+        public Directory(JSONObject object) {
+            super(object);
+        }
+        
+        public Descriptor getDescriptor(){
+            return get(Descriptor.class, "descriptor");
+        }
+        public void setDescriptor(Descriptor descriptor){
+            set("descriptor",descriptor);
+        }
+        
     }
 
     @Override

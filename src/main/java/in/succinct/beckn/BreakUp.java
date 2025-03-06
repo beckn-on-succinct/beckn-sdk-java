@@ -88,7 +88,9 @@ public class BreakUp extends BecknObjects<BreakUpElement> {
             packing,
             tax,
             misc,
-            discount,
+            discount;
+            
+            public static EnumConvertor<BreakUpCategory> convertor = new EnumConvertor<>(){};
         }
     }
 }

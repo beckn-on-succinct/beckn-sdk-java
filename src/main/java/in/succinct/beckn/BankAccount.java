@@ -1,71 +1,48 @@
 package in.succinct.beckn;
 
-public class BankAccount extends BecknObject implements AddressHolder{
+import org.json.simple.JSONObject;
+
+public class BankAccount extends BecknObject{
     public BankAccount() {
+        super();
     }
+    
+    public BankAccount(JSONObject object , String prefix) {
+        super(object);
+        this.setPrefix(prefix);
+    }
+    
+    String prefix;
     public String getPrefix(){
-        return get("prefix");
+        return this.prefix;
     }
     public void setPrefix(String prefix){
-        set("prefix",prefix);
+        this.prefix = prefix;
     }
+    
     private String key(String name){
         String p = getPrefix();
         if (p == null){
-            return "";
+            return name;
         }else {
             return String.format("%s_%s",p,name);
         }
     }
-
-    public Address getAddress(){
-        return AddressHolder.super.getAddress();
+    
+    
+    public String getBankAccountName(){
+        return get(key("bank_account_name"));
     }
-    public void setAddress(Address address){
-        AddressHolder.super.setAddress(address);
+    public void setBankAccountName(String bank_account_name){
+        set(key("bank_account_name"),bank_account_name);
     }
-
-    public City getCity(){
-        return get(City.class, "city");
-    }
-    public void setCity(City city){
-        set("city",city);
-    }
-    public State getState(){
-        return get(State.class, "state");
-    }
-    public void setState(State state){
-        set("state",state);
-    }
-    public Country getCountry(){
-        return get(Country.class, "country");
-    }
-    public void setCountry(Country country){
-        set("country",country);
+    
+    public String getBankAccountNumber() {
+        return get(key("bank_account_number"));
     }
 
-    public String getPinCode(){
-        return get("pin_code");
-    }
-    public void setPinCode(String pin_code){
-        set("pin_code",pin_code);
-    }
-
-    public String getName() {
-        return get(key("name"));
-    }
-
-    public void setName(String name) {
-        set(key("name"), name);
-    }
-
-
-    public String getAccountNo() {
-        return get(key("account_no"));
-    }
-
-    public void setAccountNo(String account_no) {
-        set(key("account_no"), account_no);
+    public void setBankAccountNumber(String account_no) {
+        set(key("bank_account_number"), account_no);
     }
 
     public String getBankCode() {
@@ -77,18 +54,33 @@ public class BankAccount extends BecknObject implements AddressHolder{
     }
 
     public String getBankName(){
-        return get("bank_name");
+        return get(key("bank_name"));
     }
     public void setBankName(String bank_name){
-        set("bank_name",bank_name);
+        set(key("bank_name"),bank_name);
+    }
+    
+    public String getBranchCode(){
+        return get(key("branch_code"));
+    }
+    public void setBranchCode(String branch_code){
+        set(key("branch_code"),branch_code);
     }
 
+    public String getBranchName(){
+        return get(key("branch_name"));
+    }
+    public void setBranchName(String branch_name){
+        set(key("branch_name"),branch_name);
+    }
+    
 
-    public String getVpa() {
+    
+    public String getVirtualPaymentAddress(){
         return get(key("virtual_payment_address"));
     }
-
-    public void setVpa(String vpa) {
-        set(key("virtual_payment_address"), vpa);
+    public void setVirtualPaymentAddress(String virtual_payment_address){
+        set(key("virtual_payment_address"),virtual_payment_address);
     }
+    
 }

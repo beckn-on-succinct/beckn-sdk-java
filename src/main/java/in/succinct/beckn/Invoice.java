@@ -39,12 +39,22 @@ public class Invoice extends BecknObjectWithId{
         set("date",date, BecknObject.DATE_FORMAT);
     }
     
-    public int getAmount(){
-        return getInteger("amount");
+    public double getAmount(){
+        return getDouble("amount");
     }
-    public void setAmount(int amount){
+    public void setAmount(double amount){
         set("amount",amount);
     }
+    
+    public String getCurrency(){
+        return get("currency");
+    }
+    public void setCurrency(String currency){
+        set("currency",currency);
+    }
+    
+    
+    
     
     public BreakUp getBreakUp(){
         return get(BreakUp.class, "breakup");

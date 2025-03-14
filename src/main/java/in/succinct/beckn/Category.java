@@ -22,7 +22,13 @@ public class Category extends BecknObjectWithId implements  TagGroupHolder{
         HOME_DECOR,
         PACKAGED_FOOD,
         PACKAGED_GOODS_NON_FOOD,
+        ON_DEMAND_LOGISTICS;
+        
+        
+        
+        public static final CategoryCodeConverter convertor = new CategoryCodeConverter();
     }
+    public static class CategoryCodeConverter extends EnumConvertor<CategoryCode>{};
 
 
     public CategoryCode getCategoryCode(){

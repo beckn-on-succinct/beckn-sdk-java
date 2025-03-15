@@ -326,7 +326,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     /** Backwards compatibility */
     public Fulfillment getFulfillment(){
         Fulfillments fulfillments  = getFulfillments();
-        if (fulfillments.isEmpty()){
+        if (fulfillments == null || fulfillments.isEmpty()){
             return null;
         }else {
             return fulfillments.get(0);

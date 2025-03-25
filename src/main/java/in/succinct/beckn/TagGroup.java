@@ -7,6 +7,11 @@ public class TagGroup extends BecknObjectWithId{
     public TagGroup(){
         super();
     }
+    
+    public TagGroup(String payload) {
+        super(payload);
+    }
+    
     public TagGroup(String code, Object value){
         this(code,null,value);
     }

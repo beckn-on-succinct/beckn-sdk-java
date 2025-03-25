@@ -196,6 +196,10 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     public void setTags(TagGroups tags) {
         TagGroupHolder.super.setTags(tags);
     }
+    
+    public void rmTags(String name){
+        TagGroupHolder.super.rmTags(name);
+    }
 
     public ServiceablityTags getServiceablityTags(){
         return extendedAttributes.get(ServiceablityTags.class, "tags");

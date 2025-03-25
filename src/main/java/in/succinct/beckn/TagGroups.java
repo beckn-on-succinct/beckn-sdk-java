@@ -2,6 +2,8 @@ package in.succinct.beckn;
 
 import org.json.simple.JSONArray;
 
+import java.util.List;
+
 public class TagGroups extends BecknObjectsWithId<TagGroup>{
     public TagGroups() {
         super(false);
@@ -10,7 +12,15 @@ public class TagGroups extends BecknObjectsWithId<TagGroup>{
     public TagGroups(JSONArray array) {
         super(array,false);
     }
-
+    
+    public void rmTag(String tagGroup){
+        List<TagGroup> tagGroupList = all(tagGroup);
+        if (tagGroupList != null) {
+            for (TagGroup tg : tagGroupList) {
+                remove(tg);
+            }
+        }
+    }
     public String getTag(String tagGroup, String code) {
         TagGroup tg = get(tagGroup);
         TagGroups tagList = tg == null ? null : tg.getList();

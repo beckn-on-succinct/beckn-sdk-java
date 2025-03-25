@@ -14,7 +14,12 @@ public interface TagGroupHolder {
     default void setTags(TagGroups tags){
         set("tags",tags);
     }
-
+    default void rmTags(String tagGroup){
+        TagGroups groups = getTags();
+        if (groups != null){
+            groups.rmTag(tagGroup);
+        }
+    }
     default String getTag(String tagGroup, String code) {
         TagGroups groups = getTags();
         return groups == null ? null : groups.getTag(tagGroup,code);

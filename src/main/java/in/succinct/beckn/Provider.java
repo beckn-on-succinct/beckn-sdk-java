@@ -147,9 +147,11 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
         return directories;
     }
     public void setDirectories(Directories directories){
+        
         for (Directory directory : directories) {
             setTag("directories",directory.getId(),directory.getDescriptor().getName());
         }
+        getTags().get("directories").setDisplay(false);
     }
     
     

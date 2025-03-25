@@ -23,7 +23,7 @@ public class TagGroup extends BecknObjectWithId{
         }else {
             setValue(String.valueOf(value));
         }
-
+        setDisplay(true);
     }
     @Override
     public String getId() {
@@ -35,12 +35,14 @@ public class TagGroup extends BecknObjectWithId{
         setCode(id);
     }
 
+    
+    public boolean isDisplay(){
+        return getBoolean("display");
+    }
     public void setDisplay(boolean display){
         set("display",display);
     }
-    public boolean getDisplay(){
-        return getBoolean("display");
-    }
+    
 
     private String getCode(){
         return get("code");

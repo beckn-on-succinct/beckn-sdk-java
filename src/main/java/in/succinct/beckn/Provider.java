@@ -150,7 +150,8 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
         for (Directory directory : directories) {
             setTag("directories", directory.getId(), directory.getDescriptor().getName());
         }
-        TagGroup tg = getTags().get("directories");
+        TagGroups tagGroups = getTags();
+        TagGroup tg = tagGroups == null ? null : tagGroups.get("directories");
         if (tg != null) {
             tg.setDisplay(false);
         }

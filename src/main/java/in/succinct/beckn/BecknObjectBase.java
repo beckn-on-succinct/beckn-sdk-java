@@ -123,7 +123,7 @@ public class BecknObjectBase extends BecknAware<JSONObject> {
                         if (o instanceof BecknObject){
                             BecknObject listElement = (BecknObject) boCreator.create(targetFields.clazz);
                             if (listElement.getClass() == o.getClass()){
-                                listElement.setInner(((BecknObject) o).getInner());
+                                listElement.setPayload(((BecknObject) o).getInner().toString());
                                 targetFields.add(listElement,reset);
                             }else {
                                 listElement.update((BecknObject) o);

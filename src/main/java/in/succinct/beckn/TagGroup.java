@@ -46,10 +46,10 @@ public class TagGroup extends BecknObjectWithId{
     }
     
 
-    private String getCode(){
+    protected String getCode(){
         return get("code");
     }
-    private void setCode(String code){
+    protected void setCode(String code){
         set("code",code);
     }
     public String getName(){

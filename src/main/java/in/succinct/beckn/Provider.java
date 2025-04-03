@@ -33,12 +33,19 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     public  Items getItems(){
         return get(Items.class,"items");
     }
+    public  Items getItems(boolean createIfAbsent){
+        return get(Items.class,"items",createIfAbsent);
+    }
     public void setItems(Items items){
         set("items",items);
     }
 
     public Categories getCategories(){
         return get(Categories.class,"categories");
+    }
+    
+    public Categories getCategories(boolean createIfAbsent){
+        return get(Categories.class,"categories",true);
     }
     public void setCategories(Categories categories){
         set("categories",categories);
@@ -47,12 +54,18 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     public Fulfillments getFulfillments(){
         return get(Fulfillments.class, "fulfillments");
     }
+    public Fulfillments getFulfillments(boolean createIfAbsent){
+        return get(Fulfillments.class, "fulfillments",createIfAbsent);
+    }
     public void setFulfillments(Fulfillments fulfillments){
         set("fulfillments",fulfillments);
     }
 
     public Payments getPayments(){
         return get(Payments.class, "payments");
+    }
+    public Payments getPayments(boolean createIfAbsent){
+        return get(Payments.class, "payments",createIfAbsent);
     }
     public void setPayments(Payments payments){
         set("payments",payments);
@@ -131,17 +144,14 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
         Directories directories = getObjectCreator().create(Directories.class);
         TagGroups groups = getTags();
         if (groups != null) {
-            for (TagGroup tag : groups) {
-                if (ObjectUtil.equals(tag.getId(), "directories")) {
-                    for (TagGroup tagGroup : tag.getList()) {
-                        Directory directory = directories.getObjectCreator().create(Directory.class);
-                        directory.setId(tagGroup.getId());
-                        directory.setDescriptor(new Descriptor() {{
-                            setName(tagGroup.getValue());
-                        }});
-                        directories.add(directory);
-                    }
-                }
+            TagGroup  tagGroup = groups.get("directories");
+            if (tagGroup != null) {
+                Directory directory = directories.getObjectCreator().create(Directory.class);
+                directory.setId(tagGroup.getId());
+                directory.setDescriptor(new Descriptor() {{
+                    setName(tagGroup.getValue());
+                }});
+                directories.add(directory);
             }
         }
         return directories;

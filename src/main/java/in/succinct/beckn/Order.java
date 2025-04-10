@@ -354,6 +354,10 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     }
     public void setProviderLocation(Location location){
         Provider provider  = getProvider(true);
+        if (location == null){
+            provider.setLocations(null);
+            return;
+        }
         Locations locations = provider.getLocations(true);
         Location existing = locations.get(location.getId());
         if (existing == null){

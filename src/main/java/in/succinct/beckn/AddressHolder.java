@@ -31,6 +31,7 @@ public interface AddressHolder {
         if (tokenizer.hasMoreTokens()) address.setBuilding(tokenizer.nextToken());
         if (tokenizer.hasMoreTokens()) address.setStreet(tokenizer.nextToken());
         if (tokenizer.hasMoreTokens()) address.setLocality(tokenizer.nextToken());
+        if (tokenizer.hasMoreTokens()) address.setLandmark(tokenizer.nextToken());
         if (tokenizer.hasMoreTokens()) address.setWard(tokenizer.nextToken());
         if (getCountry() != null) {
             address.setCountry(getCountry().getName());

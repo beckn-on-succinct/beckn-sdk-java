@@ -112,6 +112,14 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     public void setFulfillments(Fulfillments fulfillments){
         set("fulfillments",fulfillments);
     }
+    public Integer getRating() {
+        return getInteger("rating",null);
+    }
+    
+    public void setRating(Integer rating) {
+        set("rating", rating);
+    }
+    
     
     public Cancellation getCancellation(){
         return get(Cancellation.class, "cancellation");

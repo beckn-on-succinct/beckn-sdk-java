@@ -3,7 +3,7 @@ package in.succinct.beckn;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-public class Descriptor extends BecknObject implements ImagesHolder{
+public class    Descriptor extends BecknObject implements ImagesHolder{
     public static class Descriptors extends BecknObjects<Descriptor>{
         public Descriptors() {
         }

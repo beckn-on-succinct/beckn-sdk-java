@@ -28,7 +28,36 @@ public class Item extends BecknObjectWithId implements TagGroupHolder {
     public void setCategoryId(String criteriaId){
         set("category_id",criteriaId);
     }
-
+    
+    
+    public String getLength(){
+        return getTag("dimension","length");
+    }
+    public void setLength(String length){
+        setTag("dimension","length",length);
+    }
+    
+    public String getWidth(){
+        return getTag("dimension","width");
+    }
+    public void setWidth(String width){
+        setTag("dimension","width", width);
+    }
+    
+    public String getHeight(){
+        return getTag("dimension","height");
+    }
+    public void setHeight(String height){
+        setTag("dimension","height", height);
+    }
+    
+    public String getWeight(){
+        return getTag("dimension","weight");
+    }
+    public void setWeight(String weight){
+        setTag("dimension", "weight", weight);
+    }
+    
     public BecknStrings getCategoryIds(){
         return extendedAttributes.get(BecknStrings.class, "category_ids");
     }

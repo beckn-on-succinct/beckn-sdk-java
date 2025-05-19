@@ -2,7 +2,7 @@ package in.succinct.beckn;
 
 import java.util.Date;
 
-public class Organization extends BecknObject implements AddressHolder {
+public class Organization extends BecknObject implements AddressHolder , TagGroupHolder {
 
     public Descriptor getDescriptor(){
         return get(Descriptor.class, "descriptor");
@@ -13,7 +13,18 @@ public class Organization extends BecknObject implements AddressHolder {
     public Descriptor getDescriptor(boolean create){
         return get(Descriptor.class, "descriptor",create);
     }
-
+    @Override
+    public TagGroups getTags() {
+        return TagGroupHolder.super.getTags();
+    }
+    
+    @Override
+    public void setTags(TagGroups tags) {
+        TagGroupHolder.super.setTags(tags);
+    }
+    
+    
+    
     public Country getCountry(){
         return get(Country.class, "country");
     }

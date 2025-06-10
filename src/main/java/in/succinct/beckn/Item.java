@@ -23,10 +23,19 @@ public class Item extends BecknObjectWithId implements TagGroupHolder {
     }
 
     public String getCategoryId(){
-        return get("category_id");
+        BecknStrings categoryIds = getCategoryIds();
+        if (categoryIds.isEmpty()){
+            return null;
+        }else {
+            return categoryIds.get(0);
+        }
     }
     public void setCategoryId(String criteriaId){
-        set("category_id",criteriaId);
+        if (criteriaId != null) {
+            getCategoryIds().add(criteriaId);
+        }else {
+            getCategoryIds().clear();
+        }
     }
     
     
@@ -59,14 +68,14 @@ public class Item extends BecknObjectWithId implements TagGroupHolder {
     }
     
     public BecknStrings getCategoryIds(){
-        return extendedAttributes.get(BecknStrings.class, "category_ids");
+        return extendedAttributes.get(BecknStrings.class, "category_ids",true);
     }
     public void setCategoryIds(BecknStrings category_ids){
         extendedAttributes.set("category_ids",category_ids);
     }
 
     public BecknStrings getLocationIds(){
-        return extendedAttributes.get(BecknStrings.class, "location_ids");
+        return extendedAttributes.get(BecknStrings.class, "location_ids",true);
     }
     public void setLocationIds(BecknStrings location_ids){
        extendedAttributes.set("location_ids",location_ids);
@@ -74,13 +83,13 @@ public class Item extends BecknObjectWithId implements TagGroupHolder {
 
 
     public BecknStrings getPaymentIds(){
-        return extendedAttributes.get(BecknStrings.class, "payment_ids");
+        return extendedAttributes.get(BecknStrings.class, "payment_ids",true);
     }
     public void setPaymentIds(BecknStrings payment_ids){
         extendedAttributes.set("payment_ids",payment_ids);
     }
     public BecknStrings getFulfillmentIds(){
-        return extendedAttributes.get(BecknStrings.class, "fulfillment_ids");
+        return extendedAttributes.get(BecknStrings.class, "fulfillment_ids",true);
     }
     public void setFulfillmentIds(BecknStrings fulfillment_ids){
         extendedAttributes.set("fulfillment_ids",fulfillment_ids);
@@ -100,11 +109,16 @@ public class Item extends BecknObjectWithId implements TagGroupHolder {
     }
 
     public String getLocationId(){
-        return get("location_id");
+        BecknStrings locationIds = getLocationIds();
+        return locationIds != null && !locationIds.isEmpty() ? locationIds.get(0) : null ;
     }
 
     public void setLocationId(String id){
-        set("location_id",id);
+        if (id != null) {
+            getLocationIds().add(id);
+        }else {
+            getLocationIds().clear();
+        }
     }
 
     public boolean getRecommended(){
@@ -115,10 +129,18 @@ public class Item extends BecknObjectWithId implements TagGroupHolder {
     }
 
     public String getFulfillmentId(){
-        return get("fulfillment_id");
+        BecknStrings fulfillmentIds = getFulfillmentIds();
+        if (fulfillmentIds.isEmpty()){
+            return null;
+        }else {
+            return fulfillmentIds.get(0);
+        }
     }
     public void setFulfillmentId(String fulfillment_id){
-        set("fulfillment_id",fulfillment_id);
+        BecknStrings fulfillmentIds =  getFulfillmentIds();
+        if (!fulfillmentIds.getInner().contains(fulfillment_id)){
+            fulfillmentIds.add(fulfillment_id);
+        }
     }
 
 

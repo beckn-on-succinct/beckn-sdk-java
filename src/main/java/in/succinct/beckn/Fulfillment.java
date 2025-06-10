@@ -68,7 +68,7 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
         if (stops.isEmpty()){
             stops.add(start);
         }else {
-            FulfillmentStop existingStop = stops.get(start.getId());
+            FulfillmentStop existingStop = stops.get(0);
             if (existingStop == null){
                 stops.insert(0,start);
             }else {
@@ -84,13 +84,11 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
             stops = new FulfillmentStops();
             setFulfillmentStops(stops);
         }
-        if (stops.size() > 1){
-            FulfillmentStop existingStop = stops.get(end.getId());
-            if (existingStop == null){
-                stops.add(end);
-            }else {
-                existingStop.update(end);
-            }
+        FulfillmentStop existingStop = stops.size() <=1 ? null : stops.get(stops.size()-1);
+        if (existingStop == null){
+            stops.add(end);
+        }else {
+            existingStop.update(end);
         }
     }
     

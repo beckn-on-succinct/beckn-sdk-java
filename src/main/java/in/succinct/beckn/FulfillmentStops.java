@@ -2,7 +2,7 @@ package in.succinct.beckn;
 
 import org.json.simple.JSONArray;
 
-public class FulfillmentStops extends BecknObjects<FulfillmentStop>{
+public class FulfillmentStops extends BecknObjectsWithId<FulfillmentStop>{
     public FulfillmentStops() {
     }
 

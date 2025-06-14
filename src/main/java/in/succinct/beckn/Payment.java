@@ -1,6 +1,7 @@
 package in.succinct.beckn;
 
 
+import com.venky.core.util.ObjectUtil;
 import in.succinct.beckn.Fulfillment.FulfillmentStatus;
 import in.succinct.beckn.Fulfillment.FulfillmentStatus.FulfillmentStatusConvertor;
 import in.succinct.beckn.Payment.PaymentStatus.PaymentStatusConvertor;
@@ -12,6 +13,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("DeprecatedIsStillUsed")
 public class Payment extends BecknObjectWithId implements TagGroupHolder {
     public Payment(){
         super();
@@ -224,41 +226,57 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
     public static final String ON_FULFILLMENT = "ON-FULFILLMENT";
     public static final String PRE_FULFILLMENT = "PRE-FULFILLMENT";
     public static final String POST_FULFILLMENT = "POST-FULFILLMENT";
-    @SuppressWarnings("DeprecatedIsStillUsed")
+    
+    
     @Deprecated
-    public String getPaymentType(){
-        return get("payment_type",POST_FULFILLMENT);
+    public String _getPaymentType(){
+        return get("payment_type");
     }
-    @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    public void setPaymentType(String payment_type){
+    public void _setPaymentType(String payment_type){
         set("payment_type",payment_type);
-        switch (payment_type){
-            case ON_ORDER -> {
-                setInvoiceEvent(FulfillmentStatus.Created);
-            }
-            case PRE_FULFILLMENT -> {
-                setInvoiceEvent(FulfillmentStatus.Prepared);
-            }
-            default -> {
-                setInvoiceEvent(FulfillmentStatus.Completed);
-            }
-        }
     }
     
     
     //Invoice Event
     public FulfillmentStatus getInvoiceEvent(){
-        FulfillmentStatus status =  extendedAttributes.getEnum(FulfillmentStatus.class,"invoice_event", new FulfillmentStatusConvertor());
-        if (status == null){
-            setPaymentType(getPaymentType()); // Derived from payment type for bc.
-            status = extendedAttributes.getEnum(FulfillmentStatus.class,"invoice_event", new FulfillmentStatusConvertor());
+        FulfillmentStatus invoiceEvent =   getEnum(FulfillmentStatus.class,"invoice_event", new FulfillmentStatusConvertor());
+        if (invoiceEvent == null){
+            String paymentType = _getPaymentType();
+            if (paymentType != null) {
+                switch (paymentType) {
+                    case ON_ORDER -> {
+                        invoiceEvent = FulfillmentStatus.Created;
+                    }
+                    case PRE_FULFILLMENT -> {
+                        invoiceEvent = FulfillmentStatus.Prepared;
+                    }
+                    case ON_FULFILLMENT, POST_FULFILLMENT -> {
+                        invoiceEvent = FulfillmentStatus.Completed;
+                    }
+                }
+            }
         }
-        return status;
+        return invoiceEvent;
     }
     
     public void setInvoiceEvent(FulfillmentStatus event){
-        extendedAttributes.setEnum("invoice_event", event, new FulfillmentStatusConvertor());
+        setEnum("invoice_event", event, new FulfillmentStatusConvertor());
+        
+        switch (event){
+            case Created -> {
+                _setPaymentType(ON_ORDER);
+            }
+            case Completed -> {
+                _setPaymentType(ON_FULFILLMENT);
+            }
+            case Prepared -> {
+                _setPaymentType(PRE_FULFILLMENT);
+            }
+            default -> {
+                _setPaymentType(null);
+            }
+        }
     }
     
     

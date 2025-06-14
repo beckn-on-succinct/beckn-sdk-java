@@ -281,10 +281,10 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     
     
     public Invoices getInvoices(){
-        return extendedAttributes.get(Invoices.class, "invoices");
+        return get(Invoices.class, "invoices");
     }
     public void setInvoices(Invoices invoices){
-        extendedAttributes.set("invoices",invoices);
+        set("invoices",invoices);
     }
     
     

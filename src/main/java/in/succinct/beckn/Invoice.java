@@ -12,7 +12,7 @@ import org.json.simple.JSONObject;
 
 import java.util.Date;
 
-public class Invoice extends BecknObjectWithId{
+public class Invoice extends BecknObjectWithId implements TagGroupHolder{
     public Invoice() {
     }
     
@@ -54,7 +54,15 @@ public class Invoice extends BecknObjectWithId{
     }
     
     
+    @Override
+    public TagGroups getTags() {
+        return TagGroupHolder.super.getTags();
+    }
     
+    @Override
+    public void setTags(TagGroups tags) {
+        TagGroupHolder.super.setTags(tags);
+    }
     
     public BreakUp getBreakUp(){
         return get(BreakUp.class, "breakup");

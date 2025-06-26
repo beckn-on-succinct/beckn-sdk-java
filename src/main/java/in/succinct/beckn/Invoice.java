@@ -31,6 +31,10 @@ public class Invoice extends BecknObjectWithId implements TagGroupHolder{
         set("fulfillment_id",fulfillment_id);
     }
     
+    public boolean isEstimate(){
+        return getTag("payment_link","uri") == null;
+    }
+    
     
     public Date getDate(){
         return getDate("date");
@@ -72,7 +76,7 @@ public class Invoice extends BecknObjectWithId implements TagGroupHolder{
     }
     
     public Disputes getDisputes(){
-        return getDisputes(false);
+        return getDisputes(true);
     }
     public Disputes getDisputes(boolean createIfAbsent){
         return get(Disputes.class, "disputes",createIfAbsent);
@@ -82,7 +86,7 @@ public class Invoice extends BecknObjectWithId implements TagGroupHolder{
     }
     
     public PaymentTransactions getPaymentTransactions(){
-        return get(PaymentTransactions.class, "payment_transactions");
+        return get(PaymentTransactions.class, "payment_transactions",true);
     }
     public void setPaymentTransactions(PaymentTransactions payment_transactions){
         set("payment_transactions",payment_transactions);
@@ -247,7 +251,7 @@ public class Invoice extends BecknObjectWithId implements TagGroupHolder{
         Bucket unpaidAmount = new Bucket(invoice.getAmount());
         for (PaymentTransaction paymentTransaction : invoice.getPaymentTransactions()){
             switch (paymentTransaction.getPaymentStatus()){
-                case PAID,TARGET_CREDITED,SOURCE_DEBITED,PENDING,AUTHORIZED-> {
+                case PAID,TARGET_CREDITED,SOURCE_DEBITED,AUTHORIZED,COMPLETE-> {
                     unpaidAmount.decrement(paymentTransaction.getAmount());
                 }
             }
@@ -260,7 +264,7 @@ public class Invoice extends BecknObjectWithId implements TagGroupHolder{
                     Bucket authAmount = new Bucket(dispute.getAuthorizedAmount());
                     for (Credit credit : dispute.getCredits()){
                         switch (credit.getPaymentStatus()){
-                            case TARGET_CREDITED, PAID, CREDIT_NOTE_ACCEPTED, CREDIT_NOTE_ISSUED , PENDING, SOURCE_DEBITED->{
+                            case TARGET_CREDITED, PAID, CREDIT_NOTE_ACCEPTED, CREDIT_NOTE_ISSUED , COMPLETE, SOURCE_DEBITED->{
                                 authAmount.decrement(credit.getAmount());
                             }
                         }

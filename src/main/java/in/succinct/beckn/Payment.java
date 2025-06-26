@@ -13,6 +13,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * This is the class for payment Terms.
+ */
 @SuppressWarnings("DeprecatedIsStillUsed")
 public class Payment extends BecknObjectWithId implements TagGroupHolder {
     public Payment(){
@@ -64,7 +67,7 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
 
     
     public Params getParams(){
-        return get(Params.class,"params");
+        return get(Params.class,"params",true);
     }
     
     public void setParams(Params params){
@@ -73,10 +76,11 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
     
     
     public enum PaymentStatus {
+        NOT_PAID,
         AUTHORIZED("AUTHORIZED"), //Buyer has money and is blocked by buyer's bank.
-        PENDING, SOURCE_DEBITED ("PENDING"), //Buyer has approved and money is credited to the collector's bank.
-        NOT_PAID, TARGET_NOT_CREDITED("NOT_PAID"), //Some failure to credit the collector's account.
-        PAID, TARGET_CREDITED("PAID"), // Collector account is credited by collector's bank
+        PAID,  SOURCE_DEBITED("PAID") , //Buyer has approved and money is credited to the collector's bank.
+        FAILURE, TARGET_NOT_CREDITED("FAILURE"),
+        COMPLETE, TARGET_CREDITED("COMPLETE"), // Collector account is credited by collector's bank
         CREDIT_NOTE_ISSUED,
         CREDIT_NOTE_ACCEPTED,
         CREDIT_NOTE_REJECTED;
@@ -96,6 +100,8 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
         public String literal(){
             return lit;
         }
+        public static PaymentStatusConvertor convertor = new PaymentStatusConvertor();
+
         public static class PaymentStatusConvertor extends EnumConvertor<PaymentStatus> {
             public String toString(PaymentStatus value){
                 return value == null ? null : value.literal().replace('_','-');

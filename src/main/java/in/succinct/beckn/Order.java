@@ -1,5 +1,6 @@
 package in.succinct.beckn;
 
+import com.venky.core.math.DoubleUtils;
 import com.venky.core.util.Bucket;
 import com.venky.core.util.ObjectUtil;
 import in.succinct.beckn.CancellationTerm.CancellationTerms;
@@ -7,6 +8,7 @@ import in.succinct.beckn.Conversation.Conversations;
 import in.succinct.beckn.Fulfillment.FulfillmentStatus;
 import in.succinct.beckn.Invoice.Invoices;
 import in.succinct.beckn.Order.Status.StatusConverter;
+import in.succinct.beckn.Payment.PaymentStatus;
 import in.succinct.beckn.RefundTerm.RefundTerms;
 import in.succinct.beckn.ReplacementTerm.ReplacementTerms;
 import in.succinct.beckn.ReturnTerm.ReturnTerms;
@@ -166,7 +168,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
 
     
     public Payments getPayments(){
-        return getPayments(false);
+        return getPayments(true);
     }
     public Payments getPayments(boolean createIfAbsent){
         return get(Payments.class, "payments",createIfAbsent);
@@ -281,7 +283,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     
     
     public Invoices getInvoices(){
-        return get(Invoices.class, "invoices");
+        return get(Invoices.class, "invoices",true);
     }
     public void setInvoices(Invoices invoices){
         set("invoices",invoices);
@@ -295,30 +297,17 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
         boolean paid = false;
 
         Payments payments  = getPayments(); //These are the payment terms
-        if (invoices != null){
-            Map<String,Invoice> invoiceMap =getFulfillmentInvoiceMap();
-            
-            for (Payment term : payments){
-                paid = false;
-                Fulfillment fulfillment  = fulfillments.get(term.getFulfillmentId());
-                Invoice invoice = invoiceMap.get(term.getFulfillmentId());
-                if (invoice == null && fulfillment.getFulfillmentStatus().isOpen()){
-                    //Invoice is not raised. !!
-                    break;
-                }else if (invoice != null ){
-                    Bucket unpaidAmount = invoice.getUnpaidAmount();
-                    if (unpaidAmount.intValue()  == 0 ){
-                        paid = true;
-                    }else {
-                        break;
-                    }
-                }
+        if (!invoices.isEmpty()){
+            Bucket unpaidInvoicedAmount = new Bucket();
+            for (Invoice invoice : invoices){
+                unpaidInvoicedAmount.increment(invoice.getUnpaidAmount().doubleValue());
             }
+            paid = DoubleUtils.equals(unpaidInvoicedAmount.doubleValue() ,0);
         }else {
             for (Payment payment : payments){
                 paid = false;
                 switch (payment.getStatus()){
-                    case TARGET_CREDITED,PAID,SOURCE_DEBITED,AUTHORIZED,PENDING -> {
+                    case TARGET_CREDITED,PAID,SOURCE_DEBITED,AUTHORIZED,COMPLETE -> {
                         paid = true;
                     }
                 }

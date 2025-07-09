@@ -107,6 +107,18 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
                 return value == null ? null : value.literal().replace('_','-');
             }
         }
+        
+        public boolean isPaid(){
+            switch (this){
+                case PAID,SOURCE_DEBITED,COMPLETE,TARGET_CREDITED,CREDIT_NOTE_ISSUED,CREDIT_NOTE_ACCEPTED -> {
+                    return true;
+                }
+                default -> {
+                    return false;
+                }
+            }
+            
+        }
     }
     
     public static class PaymentTransaction extends Params {

@@ -75,7 +75,7 @@ public class    Descriptor extends BecknObject implements ImagesHolder{
     }
 
     public AdditionalDesc getAdditionalDesc(){
-        return get(AdditionalDesc.class, "additional_desc");
+        return get(AdditionalDesc.class, "additional_desc",true);
     }
     public void setAdditionalDesc(AdditionalDesc additional_desc){
         set("additional_desc",additional_desc);

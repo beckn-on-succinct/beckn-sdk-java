@@ -663,13 +663,5 @@ public class Item extends BecknObjectWithId implements TagGroupHolder {
         set("xinput",xinput);
     }
 
-    public Long getTtl(){
-        String ttl = get("ttl");
-        return ttl == null ? null : Duration.parse(ttl).getSeconds();
-    }
-    public void setTtl(Long ttl){
-        set("ttl",ttl == null ? null : Duration.ofSeconds(ttl).toString());
-    }
-
     
 }

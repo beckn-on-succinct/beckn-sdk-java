@@ -56,13 +56,6 @@ public class Category extends BecknObjectWithId implements  TagGroupHolder{
     public void setParentCategoryId(String parent_category_id){
         set("parent_category_id",parent_category_id);
     }
-    public Long getTtl(){
-        String ttl = get("ttl");
-        return ttl == null ? null : Duration.parse(ttl).getSeconds();
-    }
-    public void setTtl(Long ttl){
-        set("ttl",ttl == null ? null  :Duration.ofSeconds(ttl).toString());
-    }
 
     public Time getTime(){
         return get(Time.class,"time");

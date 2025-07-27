@@ -122,13 +122,7 @@ public class Context extends BecknObject {
     public void setKey(String key){
         set("key",key);
     }
-    public long getTtl(){
-        String ttl = get("ttl");
-        return ttl == null ? 10 : Duration.parse(ttl).getSeconds();
-    }
-    public void setTtl(long ttl){
-        set("ttl",Duration.ofSeconds(ttl).toString());
-    }
+    
 
     public User getUser(){
         return get(User.class, "user");

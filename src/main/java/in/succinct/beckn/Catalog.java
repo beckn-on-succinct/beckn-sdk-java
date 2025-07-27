@@ -54,12 +54,5 @@ public class Catalog extends BecknObjectWithId {
         set("exp",exp,TIMESTAMP_FORMAT);
     }
 
-    public long getTtl(){
-        String ttl = get("ttl");
-        return ttl == null ? 24L*60L*60L : Duration.parse(ttl).getSeconds();
-    }
-    public void setTtl(long ttl){
-        set("ttl",Duration.ofSeconds(ttl).toString());
-    }
 
 }

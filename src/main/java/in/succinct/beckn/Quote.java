@@ -18,13 +18,6 @@ public class Quote extends BecknObjectWithId {
         return get(Price.class,"price");
     }
 
-    public long getTtl(){
-        String ttl = get("ttl");
-        return ttl == null ? 10 : Duration.parse(ttl).getSeconds();
-    }
-    public void setTtl(long seconds){
-        set("ttl",Duration.ofSeconds(seconds).toString());
-    }
 
     public void setBreakUp(BreakUp breakUp) {
         set("breakup",breakUp);

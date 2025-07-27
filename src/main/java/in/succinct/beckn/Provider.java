@@ -1,10 +1,8 @@
 package in.succinct.beckn;
 
-import com.venky.core.util.ObjectUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import java.time.Duration;
 import java.util.Date;
 
 public class Provider extends BecknObjectWithId implements TagGroupHolder {
@@ -69,15 +67,6 @@ public class Provider extends BecknObjectWithId implements TagGroupHolder {
     }
     public void setPayments(Payments payments){
         set("payments",payments);
-    }
-
-
-    public Long getTtl(){
-        String ttl = get("ttl");
-        return ttl == null ? null : Duration.parse(ttl).getSeconds();
-    }
-    public void setTtl(Long ttl){
-        set("ttl", ttl == null ? null : Duration.ofSeconds(ttl).toString());
     }
 
 

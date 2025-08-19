@@ -48,10 +48,8 @@ public class TagGroups extends BecknObjectsWithId<TagGroup>{
                 tag.setValue(value);
                 tagList.add(tag);
             }
-        }else if (value != null){
-            tag.setValue(value);
         }else {
-            tagList.remove(tag);
+            tag.setValue(value);
         }
     }
 }

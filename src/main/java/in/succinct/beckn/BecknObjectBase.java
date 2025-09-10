@@ -1,5 +1,6 @@
 package in.succinct.beckn;
 
+import com.venky.core.util.ObjectUtil;
 import org.json.simple.JSONObject;
 
 import java.lang.reflect.Method;
@@ -94,6 +95,14 @@ public class BecknObjectBase extends BecknAware<JSONObject> {
                 if (sourceField == null){
                     continue;
                 }
+                if (targetField != null && !BecknAware.class.isAssignableFrom(targetFieldType)){
+                    //Set as null if it is default value from the object.
+                    //a json value.
+                    Object someDefaultValue = targetGetter.invoke(boCreator.create(getNonAnonymousClass()));
+                    if (someDefaultValue != null && ObjectUtil.equals(someDefaultValue,targetField)){
+                        targetField = null;
+                    }
+                }
                 if (targetField == null || reset){
                     if (BecknAware.class.isAssignableFrom(targetFieldType)){
                         targetField = boCreator.create(targetFieldType);
@@ -152,7 +161,15 @@ public class BecknObjectBase extends BecknAware<JSONObject> {
 
 
     }
-
+    
+    private Class<?> getNonAnonymousClass() {
+        Class<?> clazz = getClass();
+        while(clazz.isAnonymousClass()){
+            clazz = clazz.getSuperclass();
+        }
+        return clazz;
+    }
+    
     public static boolean hasCommonAncestor(Class<?> targetType, Class<?> sourceType) {
         Class<?> commonAncestor = targetType;
         while (commonAncestor != null && !commonAncestor.isAssignableFrom(sourceType)){

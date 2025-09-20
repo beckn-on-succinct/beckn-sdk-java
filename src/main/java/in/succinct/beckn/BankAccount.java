@@ -37,6 +37,13 @@ public class BankAccount extends BecknObject{
         set(key("bank_account_name"),bank_account_name);
     }
     
+    public String getMcc(){
+        return get(key("mcc"));
+    }
+    public void setMcc(String mcc){
+        set(key("mcc"),mcc);
+    }
+    
     public String getBankAccountNumber() {
         return get(key("bank_account_number"));
     }

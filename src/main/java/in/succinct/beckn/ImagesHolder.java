@@ -10,21 +10,24 @@ import java.util.StringTokenizer;
 public interface ImagesHolder {
     default Images getImages() {
         JSONArray o = get("images");
+        Images images ;
         if (o == null){
-            return null;
-        }
-        if (o.isEmpty()){
-            return getObjectCreator().create(Images.class);
-        }
-        if (o.get(0) instanceof String) {
-            Images images = getObjectCreator().create(Images.class);
+            images = null;
+        }else if (o.isEmpty()){
+            images= getObjectCreator().create(Images.class);
+            setImages(images);
+        }else if (o.get(0) instanceof String) {
+            images = getObjectCreator().create(Images.class);
+            setImages(images);
             o.forEach(s->{
-                images.add((String)s);
+                images.add(new Image(){{
+                    setUrl((String)s);
+                }});
             });
-            return images;
         } else {
-            return get(Images.class, "images");
+            images = get(Images.class, "images");
         }
+        return images;
     }
 
     default void setImages(Images images) {

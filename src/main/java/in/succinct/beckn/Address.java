@@ -2,6 +2,8 @@ package in.succinct.beckn;
 
 import com.venky.core.util.ObjectUtil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 public class Address extends BecknObject {
@@ -147,9 +149,19 @@ public class Address extends BecknObject {
             throw new IllegalArgumentException("numLines="+numLines);
         }
     }
-    public void _setAddressLines(String... lines){
+    public void _setAddressLines(String... address_lines){
+        List<String> arrLines = new ArrayList<>();
+        for (String addressLine : address_lines) {
+            if (!ObjectUtil.isVoid(addressLine)){
+                arrLines.add(addressLine);
+            }
+        }
+        String[] lines = arrLines.toArray(new String[]{});
         int numLines = lines.length;
-        StringTokenizer line1Tokens  = new StringTokenizer(lines[0],", ");
+        if (numLines ==0 ){
+            return;
+        }
+        StringTokenizer line1Tokens = new StringTokenizer(lines[0], ", ");
         if (line1Tokens.hasMoreTokens()) {
             setDoor(line1Tokens.nextToken());
         }
@@ -161,7 +173,7 @@ public class Address extends BecknObject {
             building.append(line1Tokens.nextToken());
         }
         setBuilding(building.toString());
-        
+    
         
         if (numLines == 2) {
             StringTokenizer line2Tokens  = new StringTokenizer(lines[1],",");

@@ -8,7 +8,6 @@ import in.succinct.beckn.Conversation.Conversations;
 import in.succinct.beckn.Fulfillment.FulfillmentStatus;
 import in.succinct.beckn.Invoice.Invoices;
 import in.succinct.beckn.Order.Status.StatusConverter;
-import in.succinct.beckn.Payment.PaymentStatus;
 import in.succinct.beckn.RefundTerm.RefundTerms;
 import in.succinct.beckn.ReplacementTerm.ReplacementTerms;
 import in.succinct.beckn.ReturnTerm.ReturnTerms;
@@ -344,24 +343,10 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
         }
     }
     
-    public Location getProviderLocation(){
+    public Location _getProviderLocation(){
         Provider provider  = getProvider();
         Locations locations = provider== null ? null : provider.getLocations();
         return locations== null || locations.isEmpty() ? null : locations.get(0);
-    }
-    public void setProviderLocation(Location location){
-        Provider provider  = getProvider(true);
-        if (location == null){
-            provider.setLocations(null);
-            return;
-        }
-        Locations locations = provider.getLocations(true);
-        Location existing = locations.get(location.getId());
-        if (existing == null){
-            locations.add(location);
-        }else if (existing != location || existing.getInner() != location.getInner()){
-            existing.update(location);
-        }
     }
     public Map<String,Invoice> getFulfillmentInvoiceMap(){
         Map<String,Invoice> invoiceMap = new HashMap<>();

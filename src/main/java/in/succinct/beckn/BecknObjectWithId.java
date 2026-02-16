@@ -17,13 +17,17 @@ public class BecknObjectWithId extends BecknObject {
     }
 
     public String getId(){
-        return get("id");
+        return get(getIdAttribute());
     }
     public void setId(String id){
         if (!ObjectUtil.isVoid(id) && !ObjectUtil.isVoid(getId()) && !ObjectUtil.equals(getId(),id)){
             throw new RuntimeException("Id cannot be changed!");
         }
-        set("id",id);
+        set(getIdAttribute(),id);
+    }
+    
+    public String getIdAttribute(){
+        return "id";
     }
 
 

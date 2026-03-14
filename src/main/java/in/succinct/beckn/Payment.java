@@ -247,7 +247,7 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
     
     
     @Deprecated
-    public String _getPaymentType(){
+    public String  _getPaymentType(){
         return get("payment_type");
     }
     @Deprecated
@@ -257,7 +257,7 @@ public class Payment extends BecknObjectWithId implements TagGroupHolder {
     
     
     //Invoice Event
-    public FulfillmentStatus getInvoiceEvent(){
+    public FulfillmentStatus  getInvoiceEvent(){
         FulfillmentStatus invoiceEvent =   getEnum(FulfillmentStatus.class,"invoice_event", new FulfillmentStatusConvertor());
         if (invoiceEvent == null){
             String paymentType = _getPaymentType();

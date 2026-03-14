@@ -1,5 +1,6 @@
 package in.succinct.beckn;
 
+import com.venky.core.string.StringUtil;
 import com.venky.core.util.ObjectUtil;
 import org.json.simple.JSONObject;
 
@@ -17,7 +18,7 @@ public class BecknObjectWithId extends BecknObject {
     }
 
     public String getId(){
-        return get(getIdAttribute());
+        return StringUtil.valueOf(get(getIdAttribute()));
     }
     public void setId(String id){
         if (!ObjectUtil.isVoid(id) && !ObjectUtil.isVoid(getId()) && !ObjectUtil.equals(getId(),id)){

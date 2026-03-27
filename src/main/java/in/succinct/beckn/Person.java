@@ -11,6 +11,20 @@ public class Person extends BecknObjectWithId implements TagGroupHolder{
     public String getName(){
         return get("name");
     }
+    
+    
+    public String getFirstName(){
+        String name = getName();
+        int i =  name.indexOf(" ");
+        return i < 0 ? name : getName().substring(0,i);
+    }
+    public String getLastName(){
+        int i =  getName().lastIndexOf(" ");
+        return getName().substring(i+1);
+    }
+    
+    
+    
     public void setName(String name){
         set("name",name);
     }

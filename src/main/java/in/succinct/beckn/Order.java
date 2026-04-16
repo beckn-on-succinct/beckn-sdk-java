@@ -69,7 +69,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
 
 
     public NonUniqueItems getItems(){
-        return get(NonUniqueItems.class,"items");
+        return get(NonUniqueItems.class,"items",true);
     }
     public void setItems(NonUniqueItems  items){
         set("items",items);

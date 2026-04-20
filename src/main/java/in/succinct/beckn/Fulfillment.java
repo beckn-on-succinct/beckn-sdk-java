@@ -115,7 +115,7 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
     }
 
     public Agent getAgent() {
-        return get(Agent.class,"agent");
+        return get(Agent.class,"agent", true);
     }
 
 

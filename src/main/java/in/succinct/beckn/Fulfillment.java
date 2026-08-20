@@ -272,6 +272,7 @@ public class Fulfillment extends BecknObjectWithId implements TagGroupHolder{
     public enum FulfillmentStatus {
         Serviceable,
         Created, // PRE_ORDER
+        Awaiting_On_Partner,
         Preparing,
         Prepared, // PRE_FULFILLMENT
         In_Transit,

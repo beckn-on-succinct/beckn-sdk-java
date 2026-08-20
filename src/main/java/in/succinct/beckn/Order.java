@@ -231,6 +231,7 @@ public class Order extends BecknObjectWithId implements TagGroupHolder{
     public enum Status {
         Created,
         Awaiting_Acceptance,
+        Awaiting_On_Partner,
         Accepted, // Is when fulfillment status is preparing
         Prepared, // Is based on fulfillment Status Prepared
         In_Transit, // Is based on fulfillment status
